@@ -1,0 +1,13 @@
+
+
+.label {
+    color: black; 
+    font-weight: bold;
+    font-variant: small-caps;
+}
+
+div.orig_elem {
+    border-width: 2px;
+    border-style: solid;
+    
+}

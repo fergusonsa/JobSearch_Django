@@ -1,0 +1,34 @@
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'jobsearch/style.css' %}" />
+{% if latest_jobposted_list %}
+<table>
+    <tr>
+        <th>Title</th>
+        <th>Date Posted</th>
+        <th>Date Inserted</th>
+        <th>Company</th>
+        <th>Location</th>
+    </tr>
+    {% for posting in latest_jobposted_list %}
+    <tr> 
+        <td><a href="/jobsearch/{{ posting.identifier }}/">{{ posting.title }}</a></td>
+        <td>{{ posting.posteddate }}</td>
+        <td>{{ posting.inserteddate }}</td>
+        <td>{{ posting.company }}</td>
+        <td>{{ posting.locale }}</td>
+        <td>{{ posting|safe }}</td>
+    </tr>
+    {% endfor %}
+</table>   
+{% else %}
+    <p>No job postings are available.</p>
+{% endif %}
+
+<hr>
+
+
+<form action="/listing/'  %}" method="post">
+{% csrf_token %}
+    {{ form }}
+    <input type="submit" value="Submit" />
+</form>

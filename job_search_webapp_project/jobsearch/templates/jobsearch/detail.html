@@ -1,0 +1,23 @@
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'jobsearch/style.css' %}" />
+{% if jobposting and jobposting|length > 0 %}
+
+<br/>
+<span class='label'>Title</span> {{ jobposting.title }}  <br/>
+<span class='label'>Identifier</span> {{ jobposting.identifier }}<br/>
+<span class='label'>Company</span> <a href="/jobsearch/recruiter/{{ jobposting.company }}/">{{ jobposting.company }}</a><br/>
+<span class='label'>Locale</span> {{ jobposting.locale }}    <br/>
+<span class='label'>Url</span> <a href="{{ jobposting.url }}">{{ jobposting.url }}</a>   <br/>
+<span class='label'>Posted Date</span> {{ jobposting.posteddate }}<br/>
+<span class='label'>Inserted Date</span> {{ jobposting.inserteddate }}<br/>
+<span class='label'>City</span> {{ jobposting.city }}<br/>
+<span class='label'>Province</span> {{ jobposting.province }}<br/>
+<span class='label'>Search Terms</span> {{ jobposting.searchterms }} <br/>
+<span class='label'>Element HTML safe</span> <div class='orig_elem'>{{ jobposting.elementhtml|safe }} </div>
+<br/>
+
+
+{% else %}
+    <p>No job postings are not available.</p>
+{% endif %}
+
