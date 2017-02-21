@@ -38,7 +38,7 @@ class Jobpostings(models.Model, Printable):
     title = models.TextField(db_column='Title')  # Field name made lowercase.
     locale = models.TextField(db_column='Locale', blank=True, null=True)  # Field name made lowercase.
     url = models.TextField(db_column='URL')  # Field name made lowercase.
-    posteddate = models.DateTimeField(db_column='postedDate', blank=True, null=True)  # Field name made lowercase.
+    posteddate = models.DateField(db_column='postedDate', blank=True, null=True)  # Field name made lowercase.
     inserteddate = models.DateTimeField(db_column='insertedDate', blank=True, null=True)  # Field name made lowercase.
     city = models.TextField(db_column='City', blank=True, null=True)  # Field name made lowercase.
     province = models.TextField(db_column='Province', blank=True, null=True)  # Field name made lowercase.

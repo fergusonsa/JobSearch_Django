@@ -5,7 +5,9 @@ import jobsearch.views
 urlpatterns = [
     # ex: /jobsearch/
     url(r'^$', jobsearch.views.index, name='index'),
-    # ex: /jobsearch/listing
+    # ex: /jobsearch/import
+    url(r'^import/$', jobsearch.views.import_postings, name='import'),
+    # ex: /jobsearch/listing 
     url(r'^listing/$', jobsearch.views.listing, name='listing'),
     # ex: /jobsearch/5/
     url(r'^(?P<identifier>[a-zA-Z0-9._-]+)/$', jobsearch.views.detail, name='detail'),

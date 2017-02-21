@@ -16,7 +16,7 @@
         <td>{{ posting.inserteddate }}</td>
         <td>{{ posting.company }}</td>
         <td>{{ posting.locale }}</td>
-        <td>{{ posting|safe }}</td>
+        <!-- <td>{{ posting|safe }}</td> -->
     </tr>
     {% endfor %}
 </table>   
@@ -26,9 +26,16 @@
 
 <hr>
 
-
-<form action="/listing/'  %}" method="post">
+<form action="/jobsearch/listing/" method="post">
 {% csrf_token %}
-    {{ form }}
+    {{ search_form }}
     <input type="submit" value="Submit" />
 </form>
+
+<hr>
+
+<form action="/jobsearch/import/" method="post">
+{% csrf_token %}
+    <input type="submit" value="Import" />
+</form>
+
