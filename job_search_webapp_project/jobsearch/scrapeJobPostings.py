@@ -14,6 +14,7 @@ from bs4 import BeautifulSoup
 from urllib.request import urlopen
 import jobsearch.SysOutRedirector
 import sqlite3 as sqlite
+from django.utils import timezone
 
 
 jobSiteDetails = {
@@ -471,7 +472,7 @@ def parseHtmlPage2(pageHtml, jobsiteDetails, searchTerms='',
         postingInfo = {'elem': it, 'searchTerms': searchTerms}
         for field in jobsiteDetails['parseInfo']['fields'].keys():
             fieldInfo = jobsiteDetails['parseInfo']['fields'][field]
-            print('looking for field {}'.format(field))
+#             print('looking for field {}'.format(field))
             try:
                 value = None
                 elem = None
@@ -543,11 +544,11 @@ def loginToWebSite(session, jobSiteDetailInfo):
     if jobSiteDetailInfo['username'] and jobSiteDetailInfo['password']:
         login_data = dict(username=jobSiteDetailInfo['username'],
                           password=jobSiteDetailInfo['password'])
-        if jobSiteDetailsInfo['nextUrl']:
-            login_data['next'] = jobSiteDetailsInfo['nextUrl']
+        if jobSiteDetailInfo['nextUrl']:
+            login_data['next'] = jobSiteDetailInfo['nextUrl']
 
-        session.get(jobSiteDetailsInfo['loginUrl'], verify=False)
-        session.post(jobSiteDetailsInfo['loginUrl'], data=login_data,
+        session.get(jobSiteDetailInfo['loginUrl'], verify=False)
+        session.post(jobSiteDetailInfo['loginUrl'], data=login_data,
                      headers={"Referer": "HOMEPAGE"})
 
 
@@ -560,7 +561,7 @@ def getJobPostingsFromSiteForMultipleSearchTerms(jobSiteDetailsInfo,
     fullPostingsList = {}
     session = requests.Session()
     if jobSiteDetailsInfo['urlSchema'] == 'https':
-        loginToWebsite(session, jobSiteDetailsInfo)
+        loginToWebSite(session, jobSiteDetailsInfo)
 
     for searchTerm in searchTermsList:
         fullPostingsList.update(getJobPostingsFromSite(
@@ -611,7 +612,7 @@ def getJobPostingsFromSite(jobSiteDetailsInfo, searchTerm, knownPostIds=[],
         session = requests.Session()
 
         if jobSiteDetailsInfo['urlSchema'] == 'https':
-            loginToWebsite(session, jobSiteDetailsInfo)
+            loginToWebSite(session, jobSiteDetailsInfo)
 
     startIndex = 0
     urlArguments = {'q': searchTerm,
@@ -662,7 +663,7 @@ def testKeywordSearches(args):
     # jobSiteDetailsInfo = jobSiteDetails['ca.indeed.com']
     jobSiteDetailsInfo = jobSiteDetails['www.simplyhired.ca']
 
-    sysOutRedirect = SysOutRedirector.SysOutRedirector(
+    sysOutRedirect = jobsearch.SysOutRedirector.SysOutRedirector(
             path='/workspaces/reports/',
             filePrefix='ScrapeIndeed-KeywordTests-{}'.format(
                 jobSiteDetailsInfo['netLoc']))
@@ -755,28 +756,30 @@ def scrape_new_job_postings():
                 knownPostIds))
     aliases = models.Companyaliases.objects.all()
     
-    for posting in fullPostingsList:
+    for post_id in fullPostingsList:
+        posting = fullPostingsList[post_id]
         company_name = posting.get('company')
-        if company_name and not aliases.filter(companyname=company_name).exists():
+        if company_name and not aliases.filter(alias=company_name).exists():
             if company_name and not models.Recruitingcompanies.objects.filter(name=company_name).exists():
-                new_date = datetime.datetime.now().strftime('%Y-%m-%d')
+                new_date = timezone.now().strftime('%Y-%m-%d')
                 new_company = models.Recruitingcompanies.objects.create(name=company_name, dateinserted=new_date)
                 new_company.save()
             new_company_alias = models.Companyaliases.objects.create(companyname=company_name, alias=company_name)
             new_company_alias.save()    
             
+        locale = posting.get('locale')
         city = None
         prov = None
         if '.' in locale:
             parts = locale.split(',')
-            city = parts[0].trim()
-            prov = parts[1].trim()
+            city = parts[0].strip()
+            prov = parts[1].strip()
         try:
             db_posting = models.Jobpostings.objects.create(
                 identifier=posting['id'],
                 company=posting.get('company'),
-                title=postingp['title'],
-                locale=posting.get('locale'),
+                title=posting['title'],
+                locale=locale,
                 url=posting['url'],
                 posteddate=posting.get('postedDate'),
                 city=city,
@@ -851,7 +854,7 @@ def main(args):
     else:
         siteList = jobSiteDetails
 
-    sysOutRedirect = SysOutRedirector.SysOutRedirector(
+    sysOutRedirect = jobsearch.SysOutRedirector.SysOutRedirector(
             path=reportPath,
             filePrefix='JobsSiteScrape-{}'.format('_'.join(siteList.keys())))
 
@@ -896,10 +899,10 @@ def login(args):
     loginUrl = 'http://ca.indeed.com/account/login'
     searchTerm = 'python'
     jobSiteDetailsInfo = jobSiteDetails['ca.indeed.com']
-    with requests.Session() as c:
+    with requests.Session() as session:
 
         if jobSiteDetailsInfo['urlSchema'] == 'https':
-            loginToWebsite(session, jobSiteDetailsInfo)
+            loginToWebSite(session, jobSiteDetailsInfo)
         startIndex = 0
         urlArguments = {'q': searchTerm,
                         'l': jobSiteDetailsInfo['location'],
@@ -912,7 +915,7 @@ def login(args):
                                   jobSiteDetailsInfo['netLoc'],
                                   jobSiteDetailsInfo['urlPath'])
 
-        page = c.get(url, params=urlArguments)
+        page = session.get(url, params=urlArguments)
         print('\nHere is the initial URL to be "scraped": {}\n\n'.format(
             page.url))
         postingsList, numPostingsOnPage = parseHtmlPage2(page.text,

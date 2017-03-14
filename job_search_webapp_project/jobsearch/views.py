@@ -1,5 +1,5 @@
 from django.db.models import Q
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 import jobsearch.models as models
 import jobsearch.forms as forms
 from django.template import loader
@@ -19,8 +19,8 @@ def index(request):
 
     latest_jobposted_list = models.Jobpostings.objects.order_by('-posteddate')[:5]
 
-    for posting in latest_jobposted_list:
-        print(posting)
+#     for posting in latest_jobposted_list:
+#         print(posting)
 
     template = loader.get_template('jobsearch/index.html')
     context = {
@@ -45,17 +45,18 @@ def listing(request):
             end_date = form.cleaned_data['postedDateEnd']
             location = form.cleaned_data['location']
 
-            queries = []
+            queries = None
             if company:
-                queries.append(Q(company__contains=company))
+                queries = Q(company__icontains=company) 
             if start_date:
-                queries.append(Q(posteddate__gte=start_date))
+                queries = queries & Q(posteddate__gte=start_date)
             if end_date:
-                queries.append(Q(posteddate__lte=end_date))
+                queries = queries & Q(posteddate__lte=end_date)
             if location:
-                queries.append(Q(location__contains=location))
-            if len(queries) > 0:
-                latest_jobposted_list = models.Jobpostings.objects.filter(queries)
+                queries = queries & Q(location__icontains=location)
+            if queries:
+                print(queries)
+                latest_jobposted_list = models.Jobpostings.objects.filter(queries).order_by('-posteddate')
             else: 
                 latest_jobposted_list = models.Jobpostings.objects.order_by('-posteddate')[:5]
 
@@ -64,8 +65,7 @@ def listing(request):
         form = forms.JobSearchForm()
         latest_jobposted_list = models.Jobpostings.objects.order_by('-posteddate')[:5]
 
-    for posting in latest_jobposted_list:
-        print(posting)
+    print('number of postings being returned: {}'.format(len(latest_jobposted_list)))
         
     template = loader.get_template('jobsearch/index.html')
     context = {
@@ -78,6 +78,7 @@ def listing(request):
 def import_postings(request):
     print('Into listing()')
     jobsearch.scrapeJobPostings.scrape_new_job_postings()
+    return redirect('index')
     
 def detail(request, identifier):
     print('Into detail("%s")' % identifier)
