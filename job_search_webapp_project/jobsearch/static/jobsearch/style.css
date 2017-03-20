@@ -1,4 +1,36 @@
+table.postings-table {
+	table-layout: fixed;
+	border-collapse: collapse;
+    padding-top: 3px;
+    padding-right: 5px;
+    padding-bottom: 3px;
+    padding-left: 5px;
+    border: 1px solid black;
+}
 
+th, td {
+    padding-top: 3px;
+    padding-right: 5px;
+    padding-bottom: 3px;
+    padding-left: 5px;
+	border: 1px solid black;
+}
+
+th.center-align {
+    text-align: center;
+}
+
+th.date-col {
+	width: 80px
+}
+
+th.datetime-col {
+    width: 120px
+}
+
+td.right-align {
+    text-align: right;
+}
 
 .label {
     color: black; 

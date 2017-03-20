@@ -1,21 +1,26 @@
 {% load static %}
-<link rel="stylesheet" type="text/css" href="{% static 'jobsearch/style.css' %}" />
+<link rel="stylesheet" type="text/css" href="{% static 'jobsearch/style.css' %}?v={random number/string}" />
 {% if latest_jobposted_list %}
-<table>
+<table class='postings-table'>
     <tr>
         <th>Title</th>
-        <th>Date Posted</th>
-        <th>Date Inserted</th>
+        <th class='date-col'>Date Posted</th>
+        <th class='datetime-col'>Date Inserted</th>
         <th>Company</th>
         <th>Location</th>
+        <th>Distance From Home</th>
     </tr>
     {% for posting in latest_jobposted_list %}
     <tr> 
         <td><a href="/jobsearch/{{ posting.identifier }}/">{{ posting.title }}</a></td>
-        <td>{{ posting.posteddate }}</td>
-        <td>{{ posting.inserteddate }}</td>
+        <td>{{ posting.posteddate|date:'Y-m-d' }}</td>
+        <td class='datetime-col'>{{ posting.inserteddate|date:'Y-m-d H:i' }}</td>
         <td>{{ posting.company }}</td>
         <td>{{ posting.locale }}</td>
+        <td class='right-align'>{{ posting.distance_from_home }}</td>
+    </tr>
+    <tr>
+    	<td colspan=6>{{ posting.elementhtml|safe  }}</td>
     </tr>
     {% endfor %}
 </table>   

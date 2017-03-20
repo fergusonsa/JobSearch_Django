@@ -8,6 +8,7 @@
 from __future__ import unicode_literals
 
 from django.db import models
+import datetime
 
 class Printable:
     def __repr__(self):
@@ -39,11 +40,12 @@ class Jobpostings(models.Model, Printable):
     locale = models.TextField(db_column='Locale', blank=True, null=True)  # Field name made lowercase.
     url = models.TextField(db_column='URL')  # Field name made lowercase.
     posteddate = models.DateField(db_column='postedDate', blank=True, null=True)  # Field name made lowercase.
-    inserteddate = models.DateTimeField(db_column='insertedDate', blank=True, null=True)  # Field name made lowercase.
+    inserteddate = models.DateTimeField(db_column='insertedDate', blank=True, default=datetime.datetime.now)  # Field name made lowercase.
     city = models.TextField(db_column='City', blank=True, null=True)  # Field name made lowercase.
     province = models.TextField(db_column='Province', blank=True, null=True)  # Field name made lowercase.
     searchterms = models.TextField(db_column='SearchTerms', blank=True, null=True)  # Field name made lowercase.
     elementhtml = models.TextField(db_column='ElementHtml', blank=True, null=True)  # Field name made lowercase.
+    distance_from_home = models.FloatField(db_column='DistanceFromHome')
 
     class Meta:
         managed = False
