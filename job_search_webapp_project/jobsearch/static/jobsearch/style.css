@@ -16,6 +16,10 @@ th, td {
 	border: 1px solid black;
 }
 
+th {
+	background-color: #E3E3E4;
+	font:bold;
+}
 th.center-align {
     text-align: center;
 }
@@ -28,10 +32,21 @@ th.datetime-col {
     width: 120px
 }
 
+tr:nth-child(4n+4), tr:nth-child(4n+5) {
+    background-color: #f7f8f9;
+}
+
 td.right-align {
     text-align: right;
 }
 
+td.post-elem {
+    border-bottom-width: 2px;	
+}
+
+td.snip {
+	border: 0px;
+}
 .label {
     color: black; 
     font-weight: bold;
@@ -43,3 +58,18 @@ div.orig_elem {
     border-style: solid;
     
 }
+
+#id_company, #id_insertedDateStart_month, #id_postedDateStart_month, #id_postedDateEnd_month, #id_location, #id_sort_by {
+	position: absolute;
+	left: 150px;
+}
+
+#id_insertedDateStart_day, #id_postedDateStart_day, #id_postedDateEnd_day {
+    position: absolute;
+    left: 239px;
+}
+
+#id_insertedDateStart_year, #id_postedDateStart_year, #id_postedDateEnd_year {
+    position: absolute;
+    left: 279px;
+}	

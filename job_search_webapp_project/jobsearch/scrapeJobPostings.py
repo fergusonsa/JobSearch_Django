@@ -399,6 +399,7 @@ def get_geolocation(geolocator, location_str, recursive_level=0):
         else:
             print('GeoCoder Timed out 5 times for {}, so skipping'.format(location_str))
             return None
+    print('Location info for {} is {}'.format(location_str, location))
     return location
 
 

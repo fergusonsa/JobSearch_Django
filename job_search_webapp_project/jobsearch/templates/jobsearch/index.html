@@ -1,5 +1,5 @@
 {% load static %}
-<link rel="stylesheet" type="text/css" href="{% static 'jobsearch/style.css' %}?v={random number/string}" />
+<link rel="stylesheet" type="text/css" href="{% static 'jobsearch/style.css' %}" />
 {% if latest_jobposted_list %}
 <table class='postings-table'>
     <tr>
@@ -20,7 +20,7 @@
         <td class='right-align'>{{ posting.distance_from_home }}</td>
     </tr>
     <tr>
-    	<td colspan=6>{{ posting.elementhtml|safe  }}</td>
+    	<td colspan=6 class='post-elem'>{{ posting.elementhtml|safe  }}</td>
     </tr>
     {% endfor %}
 </table>   
@@ -30,9 +30,16 @@
 
 <hr>
 
-<form action="/jobsearch/listing/" method="post">
+<form action="/jobsearch/" method="post">
 {% csrf_token %}
-    {{ search_form }}
+{% if form.subject.errors %}
+    <ol>
+    {% for error in form.subject.errors %}
+        <li><strong>{{ error|escape }}</strong></li>
+    {% endfor %}
+    </ol>
+{% endif %}
+    {{ search_form.as_p }}
     <input type="submit" value="Submit" />
 </form>
 
@@ -41,5 +48,10 @@
 <form action="/jobsearch/import/" method="post">
 {% csrf_token %}
     <input type="submit" value="Import" />
+</form>
+
+<form action="/jobsearch/gov_b_s/" method="post">
+{% csrf_token %}
+    <input type="submit" value="Government BuyAndSell" />
 </form>
 

@@ -7,31 +7,28 @@ from django.http import HttpResponse
 import jobsearch.scrapeJobPostings
 import datetime
 
-def index(request):
-    print('Into index()')
-        # if this is a POST request we need to process the form data
-    if request.method == 'POST':
-        # create a form instance and populate it with data from the request:
-        form = forms.JobSearchForm(None, request.POST)
 
-    # if a GET (or any other method) we'll create a blank form
-    else:
-        form = forms.JobSearchForm()
-
-    latest_jobposted_list = models.Jobpostings.objects.order_by('-posteddate')[:5]
-
-#     for posting in latest_jobposted_list:
-#         print(posting)
-
-    template = loader.get_template('jobsearch/index.html')
-    context = {
-        'search_form': form,
-        'latest_jobposted_list': latest_jobposted_list,
-    }
-    return HttpResponse(template.render(context, request))
+# def index(request):
+#     print('Into index()')
+#         # if this is a POST request we need to process the form data
+#     if request.method == 'POST':
+#         # create a form instance and populate it with data from the request:
+#         form = forms.JobSearchForm(None, request.POST)
+# 
+#     # if a GET (or any other method) we'll create a blank form
+#     else:
+#         form = forms.JobSearchForm()
+#         
+#     latest_jobposted_list = models.Jobpostings.objects.order_by('-posteddate')[:5]
+#     template = loader.get_template('jobsearch/index.html')
+#     context = {
+#         'search_form': form,
+#         'latest_jobposted_list': latest_jobposted_list,
+#     }
+#     return HttpResponse(template.render(context, request))
 
     
-def listing(request, jobSearchForm=None):
+def index(request, jobSearchForm=None):
     print('Into listing()')
     # if this is a POST request we need to process the form data
     if jobSearchForm or request.method == 'POST':
@@ -108,8 +105,9 @@ def import_postings(request):
     form.sort_by = 'distance_from_home' 
     jobsearch.scrapeJobPostings.scrape_new_job_postings()
        
-    return listing(request, form)
-    
+    return index(request, form)
+
+
 def detail(request, identifier):
     print('Into detail("%s")' % identifier)
     
@@ -126,5 +124,15 @@ def recruiter(request, company_name):
     aliases = models.Companyaliases.objects.filter(companyname=recruiter_company.name)
     return render(request, 'jobsearch/recruiter.html', {'recruiter_company': recruiter_company, 'aliases': aliases})
 
+   
+def check_government_buy_sell(request):
+    pass
 
+
+def list_government_buy_sell(request):
     
+    template = loader.get_template('jobsearch/gov_buy_sell_listing.html')
+    context = {
+        'list': [],
+    }
+    return HttpResponse(template.render(context, request))
