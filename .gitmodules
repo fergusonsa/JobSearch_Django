@@ -1,0 +1,3 @@
+[submodule "python_miscelaneous"]
+	path = python_miscelaneous
+	url = https://github.com/fergusonsa/python_miscelaneous.git
