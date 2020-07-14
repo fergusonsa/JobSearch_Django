@@ -25,11 +25,15 @@ th.center-align {
 }
 
 th.date-col {
-	width: 80px
+	width: 80px;
 }
 
 th.datetime-col {
-    width: 120px
+    width: 120px;
+}
+
+th.distance-col {
+    width: 75px;
 }
 
 tr:nth-child(4n+4), tr:nth-child(4n+5) {
@@ -56,7 +60,8 @@ td.snip {
 div.orig_elem {
     border-width: 2px;
     border-style: solid;
-    
+    font-family: monospace;
+    white-space: pre;
 }
 
 #id_company, #id_insertedDateStart_month, #id_postedDateStart_month, #id_postedDateEnd_month, #id_location, #id_sort_by {

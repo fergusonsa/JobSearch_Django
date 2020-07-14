@@ -10,6 +10,7 @@ from __future__ import unicode_literals
 from django.db import models
 import django.utils.timezone
 
+
 class Printable:
     def __repr__(self):
         from pprint import pformat
@@ -20,9 +21,9 @@ class Printable:
         return "<" + type(self).__name__ + "> " + pformat(vars(self), indent=4)
 
 
-class Companyaliases(models.Model, Printable):
-    companyname = models.CharField(db_column='CompanyName', blank=True, null=False, max_length=70)  # Field name made lowercase.
-    alias = models.CharField(db_column='Alias', primary_key=True, blank=True, null=False, max_length=70)  # Field name made lowercase.
+class CompanyAliases(models.Model, Printable):
+    company_name = models.CharField(db_column='CompanyName', blank=True, null=False, max_length=70)
+    alias = models.CharField(db_column='Alias', primary_key=True, blank=True, null=False, max_length=70)
 
     class Meta:
         managed = False
@@ -33,18 +34,18 @@ class Companyaliases(models.Model, Printable):
         return "<" + type(self).__name__ + "> " + pformat(vars(self), indent=4)
 
         
-class Jobpostings(models.Model, Printable):
-    identifier = models.TextField(primary_key=True, db_column='Id', unique=True)  # Field name made lowercase.
-    company = models.TextField(db_column='Company', blank=True, null=True, max_length=70)  # Field name made lowercase.
-    title = models.TextField(db_column='Title')  # Field name made lowercase.
-    locale = models.TextField(db_column='Locale', blank=True, null=True)  # Field name made lowercase.
-    url = models.TextField(db_column='URL')  # Field name made lowercase.
-    posteddate = models.DateField(db_column='postedDate', blank=True, null=True)  # Field name made lowercase.
-    inserteddate = models.DateTimeField(db_column='insertedDate', blank=True, default=django.utils.timezone.now)  # Field name made lowercase.
-    city = models.TextField(db_column='City', blank=True, null=True)  # Field name made lowercase.
-    province = models.TextField(db_column='Province', blank=True, null=True)  # Field name made lowercase.
-    searchterms = models.TextField(db_column='SearchTerms', blank=True, null=True)  # Field name made lowercase.
-    elementhtml = models.TextField(db_column='ElementHtml', blank=True, null=True)  # Field name made lowercase.
+class JobPostings(models.Model, Printable):
+    identifier = models.TextField(primary_key=True, db_column='Id', unique=True)  
+    company = models.TextField(db_column='Company', blank=True, null=True, max_length=70)  
+    title = models.TextField(db_column='Title')  
+    locale = models.TextField(db_column='Locale', blank=True, null=True)  
+    url = models.TextField(db_column='URL')  
+    posted_date = models.DateTimeField(db_column='postedDate', blank=True, null=True)
+    inserted_date = models.DateTimeField(db_column='insertedDate', blank=True, default=django.utils.timezone.now)  
+    city = models.TextField(db_column='City', blank=True, null=True)  
+    province = models.TextField(db_column='Province', blank=True, null=True)  
+    search_terms = models.TextField(db_column='SearchTerms', blank=True, null=True)  
+    element_html = models.TextField(db_column='ElementHtml', blank=True, null=True)  
     distance_from_home = models.FloatField(db_column='DistanceFromHome')
 
     class Meta:
@@ -56,18 +57,18 @@ class Jobpostings(models.Model, Printable):
         return "<" + type(self).__name__ + "> " + pformat(vars(self), indent=4)
     
     
-class Recruitingcompanies(models.Model, Printable):
-    name = models.TextField(db_column='Name', primary_key=True, blank=True, null=False, max_length=70)  # Field name made lowercase.
-    datecontacted = models.DateTimeField(db_column='DateContacted', blank=True, null=True)  # Field name made lowercase.
-    comment = models.TextField(db_column='Comment', blank=True, null=True)  # Field name made lowercase.
-    resumesubmitted = models.NullBooleanField(db_column='ResumeSubmitted')  # Field name made lowercase.
-    notinterested = models.NullBooleanField(db_column='NotInterested')  # Field name made lowercase.
-    url = models.TextField(db_column='URL', blank=True, null=True)  # Field name made lowercase.
-    cannotsubmitresume = models.NullBooleanField(db_column='CannotSubmitResume')  # Field name made lowercase.
-    dateinserted = models.DateTimeField(db_column='DateInserted', blank=True, null=True)  # Field name made lowercase.
-    telephone = models.TextField(db_column='Telephone', blank=True, null=True)  # Field name made lowercase.
-    contactperson = models.TextField(db_column='ContactPerson', blank=True, null=True)  # Field name made lowercase.
-    nearestoffice = models.TextField(db_column='NearestOffice', blank=True, null=True)  # Field name made lowercase.
+class RecruitingCompanies(models.Model, Printable):
+    name = models.TextField(db_column='Name', primary_key=True, blank=True, null=False, max_length=70)  
+    date_contacted = models.DateTimeField(db_column='DateContacted', blank=True, null=True)  
+    comment = models.TextField(db_column='Comment', blank=True, null=True)  
+    resume_submitted = models.NullBooleanField(db_column='ResumeSubmitted')  
+    not_interested = models.NullBooleanField(db_column='NotInterested')  
+    url = models.TextField(db_column='URL', blank=True, null=True)  
+    cannot_submit_resume = models.NullBooleanField(db_column='CannotSubmitResume')  
+    date_inserted = models.DateTimeField(db_column='DateInserted', blank=True, null=True)  
+    telephone = models.TextField(db_column='Telephone', blank=True, null=True)  
+    contact_person = models.TextField(db_column='ContactPerson', blank=True, null=True)  
+    nearest_office = models.TextField(db_column='NearestOffice', blank=True, null=True)  
 
     class Meta:
         managed = False

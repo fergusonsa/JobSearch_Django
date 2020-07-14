@@ -28,7 +28,7 @@ class SysOutRedirector:
             filePrefix = self.getOutputFileNamePrefix(filePrefix)
             reportPath = os.path.join(path, '{}-{}'.format(filePrefix, strftime("%Y%m%d.%H%M%S")))
 
-        # Check to make sure that the directory has been created
+        # Check to make sure that the test_data has been created
         if not os.path.exists(reportPath):
             if ' ' in reportPath:
                 reportPath = reportPath.replace(' ', '_')

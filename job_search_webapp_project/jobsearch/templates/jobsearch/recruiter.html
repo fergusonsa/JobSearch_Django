@@ -5,16 +5,16 @@
     {{ recruiter_company }}
     <br/>
     <span class='label'>Name </span> {{ recruiter_company.name }}<br/>
-    <span class='label'>Date Contacted</span> {{ recruiter_company.datecontacted }}<br/>
+    <span class='label'>Date Contacted</span> {{ recruiter_company.date_contacted }}<br/>
     <span class='label'>Comment</span> {{ recruiter_company.comment }}<br/>
-    <span class='label'>Resume Submitted</span> {{ recruiter_company.resumesubmitted }}<br/>
-    <span class='label'>Not Interested</span> {{ recruiter_company.notinterested }}<br/>
+    <span class='label'>Resume Submitted</span> {{ recruiter_company.resume_submitted }}<br/>
+    <span class='label'>Not Interested</span> {{ recruiter_company.not_interested }}<br/>
     <span class='label'>Url</span> <a href="{{ recruiter_company.url }}">{{ recruiter_company.url }}</a>  <br/>
-    <span class='label'>Cannot Submit Resume</span> {{ recruiter_company.cannotsubmitresume }}<br/>
-    <span class='label'>Date Inserted</span> {{ recruiter_company.dateinserted }}<br/>
+    <span class='label'>Cannot Submit Resume</span> {{ recruiter_company.cannot_submit_resume }}<br/>
+    <span class='label'>Date Inserted</span> {{ recruiter_company.date_inserted }}<br/>
     <span class='label'>Telephone</span> {{ recruiter_company.telephone }}<br/>
-    <span class='label'>Contact Person</span> {{ recruiter_company.contactperson }}<br/>
-    <span class='label'>Nearest Office</span> {{ recruiter_company.nearestoffice }}  <br/>
+    <span class='label'>Contact Person</span> {{ recruiter_company.contact_person }}<br/>
+    <span class='label'>Nearest Office</span> {{ recruiter_company.nearest_office }}  <br/>
     <br/>
     {% if aliases and aliases|length > 1 %}
     <span class='label'>Aliases</span><br/>

@@ -1,27 +1,27 @@
 {% load static %}
 <link rel="stylesheet" type="text/css" href="{% static 'jobsearch/style.css' %}" />
-{% if latest_jobposted_list %}
+{% if latest_jobs_posted_list %}
 <table class='postings-table'>
     <tr>
         <th>Title</th>
-        <th class='date-col'>Date Posted</th>
+        <th class='datetime-col'>Date Posted</th>
         <th class='datetime-col'>Date Inserted</th>
         <th>Company</th>
         <th>Location</th>
-        <th>Distance From Home</th>
+        <th class="distance-col">Distance From Home</th>
     </tr>
-    {% for posting in latest_jobposted_list %}
+    {% for posting in latest_jobs_posted_list %}
     <tr> 
         <td><a href="/jobsearch/{{ posting.identifier }}/">{{ posting.title }}</a></td>
-        <td>{{ posting.posteddate|date:'Y-m-d' }}</td>
-        <td class='datetime-col'>{{ posting.inserteddate|date:'Y-m-d H:i' }}</td>
+        <td class='datetime-col'>{{ posting.posted_date|date:'Y-m-d H:i' }}</td>
+        <td class='datetime-col'>{{ posting.inserted_date|date:'Y-m-d H:i' }}</td>
         <td>{{ posting.company }}</td>
         <td>{{ posting.locale }}</td>
         <td class='right-align'>{{ posting.distance_from_home }}</td>
     </tr>
-    <tr>
-    	<td colspan=6 class='post-elem'>{{ posting.elementhtml|safe  }}</td>
-    </tr>
+<!--    <tr>-->
+<!--    	<td colspan=6 class='post-elem'>{{ posting.element_html|safe  }}</td>-->
+<!--    </tr>-->
     {% endfor %}
 </table>   
 {% else %}
@@ -29,7 +29,7 @@
 {% endif %}
 
 <hr>
-
+<h2>Filter</h2>
 <form action="/jobsearch/" method="post">
 {% csrf_token %}
 {% if form.subject.errors %}

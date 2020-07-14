@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 """
 
 import os
+import sys
+
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -78,6 +80,9 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': os.path.join(BASE_DIR, 'jobPosting.db'),
+        'TEST': {
+            'NAME': os.path.join(BASE_DIR, 'test_jobPosting.db'),
+        },
     }
 }
 
@@ -118,5 +123,55 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
 
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': "%(asctime)s %(levelname)-5.5s %(module)-10.10s %(funcName)-10.10s  %(message)s",
+            'datefmt': "%Y-%d-%b %H:%M:%S"
+        }
+    },
+    'handlers': {
+        'file': {
+            'level': 'DEBUG',
+            'filename': 'logs/jobsearch.log',
+            'class': 'logging.FileHandler',
+            # 'class': 'logging.handlers.TimedRotatingFileHandler',
+            # 'when': 'midnight',
+            # 'backupCount': 10,
+            'formatter': 'verbose',
+        },
+        'tests_file': {
+            'level': 'DEBUG',
+            'filename': 'logs/jobsearch_tests.log',
+            'class': 'logging.handlers.TimedRotatingFileHandler',
+            'when': 'midnight',
+            'backupCount': 10,
+            'formatter': 'verbose',
+        },
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'stream': sys.stdout,
+            'formatter': 'verbose'
+        },
+    },
+    'root': {
+        'handlers': ['file', 'console'],
+        'level': 'DEBUG',
+    },
+    'loggers': {
+
+        'django_test': {
+            'handlers': ['tests_file', 'console'],
+            'level': 'DEBUG',
+        },
+    }
+}
 STATIC_URL = '/static/'
 
+DEFAULT_APP_CONFIGURATION = {
+    "indeed_publisher": "1234567890123456",
+    "home_location": "1695 Playfair Drive, Ottawa, ON, Canada"
+}

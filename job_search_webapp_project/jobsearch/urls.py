@@ -7,8 +7,12 @@ urlpatterns = [
     url(r'^$', jobsearch.views.index, name='index'),
     # ex: /jobsearch/import
     url(r'^import/$', jobsearch.views.import_postings, name='import'),
-    # ex: /jobsearch/listing 
-#     url(r'^listing/$', jobsearch.views.listing, name='listing'),
+    # ex: /jobsearch/get_postings
+    url(r'^get_postings/$', jobsearch.views.postings_as_json, name='get_postings'),
+    # ex: /jobsearch/listing
+    #     url(r'^listing/$', jobsearch.views.listing, name='listing'),
+    # ex: /jobsearch/special
+    url(r'^special/$', jobsearch.views.special, name='special'),
     # ex: /jobsearch/5/
     url(r'^(?P<identifier>[a-zA-Z0-9._-]+)/$', jobsearch.views.detail, name='detail'),
     # ex: /jobsearch/recruiter/<company_name>/
