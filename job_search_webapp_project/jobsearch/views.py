@@ -1,18 +1,22 @@
-import json
 import logging
 import datetime
 
 import django
+import geopy
 from django.core import serializers
 from django.db import transaction
 from django.db.models import Q
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, get_list_or_404
 from django.template import loader
 from django.http import HttpResponse
 
 import jobsearch.models as models
 import jobsearch.forms as forms
 import jobsearch.scrapeJobPostings
+import jobsearch.scraping.excelitr
+import jobsearch.scraping.indeed
+import jobsearch.scraping.linkedin
+
 
 logger = logging.getLogger(__name__)
 
@@ -52,7 +56,7 @@ def index(request, job_search_form=None, after_inserted_date=None):
         form = forms.JobSearchForm(request.POST)
         
         # check whether it's valid:
-        if form.is_valid() or job_search_form:
+        if job_search_form or form.is_valid():
             # process the data in form.cleaned_data as required
             if job_search_form:
                 company = job_search_form.company
@@ -119,9 +123,43 @@ def import_postings(request):
     form.postedDateStart = None
     form.company = None
     form.location = None
-    form.sort_by = 'distance_from_home' 
-    jobsearch.scrapeJobPostings.get_indeed_postings()
+    form.sort_by = 'distance_from_home'
+    geo_locations = {}
+    config = jobsearch.scraping.get_configuration()
+    geo_locator = geopy.geocoders.Nominatim(user_agent="JobSearch")
+    home_location_str = config.get('home_location')
+    home_location = jobsearch.scraping.get_geo_location(geo_locator, home_location_str)
 
+    num_imported_from_indeed = jobsearch.scraping.indeed.scrape_new_job_postings(config=config,
+                                                                                 geo_locator=geo_locator,
+                                                                                 geo_locations=geo_locations,
+                                                                                 home_location=home_location)
+    logger.debug('Number of postings from Indeed: {}'.format(num_imported_from_indeed))
+    # num_imported_from_dice = jobsearch.scrapeJobPostings.scrape_new_job_postings(config=config,
+    #                                                                        geo_locator=geo_locator,
+    #                                                                        geo_locations=geo_locations,
+    #                                                                        home_location=home_location)
+    # logger.debug('Number of postings from Dice: {}'.format(num_imported_from_dice))
+    # num_imported_from_linkedin = jobsearch.scraping.linkedin.scrape_new_job_postings(config=config,
+    #                                                                                  geo_locator=geo_locator,
+    #                                                                                  geo_locations=geo_locations,
+    #                                                                                  home_location=home_location)
+    # logger.debug('Number of postings from Linkedin: {}'.format(num_imported_from_linkedin))
+    # num_imported_from_excelitr = jobsearch.scraping.excelitr.scrape_new_job_postings(config=config,
+    #                                                                                  geo_locator=geo_locator,
+    #                                                                                  geo_locations=geo_locations,
+    #                                                                                  home_location=home_location)
+    # logger.debug('Number of postings from Excel: {}'.format(num_imported_from_excelitr))
+    # num_imported_from_sisystems = jobsearch.scraping.sisystems.scrape_new_job_postings(config=config,
+    #                                                                                  geo_locator=geo_locator,
+    #                                                                                  geo_locations=geo_locations,
+    #                                                                                  home_location=home_location)
+    # logger.debug('Number of postings from SI Systems: {}'.format(num_imported_from_sisystems))
+    # num_imported_from_myticas = jobsearch.scraping.myticas.scrape_new_job_postings(config=config,
+    #                                                                                geo_locator=geo_locator,
+    #                                                                                geo_locations=geo_locations,
+    #                                                                                home_location=home_location)
+    # logger.debug('Number of postings from Myticas: {}'.format(num_imported_from_myticas))
     return index(request, form)
     # return django.shortcuts.redirect('index')
 
@@ -130,19 +168,67 @@ def detail(request, identifier):
     logger.debug('Into detail("%s")' % identifier)
 
     job_posting = get_object_or_404(models.JobPostings, pk=identifier)
-    logger.debug('job_posting.element_html: \n%s\n%r' % (job_posting.element_html, job_posting.element_html))
+    if job_posting and not job_posting.interested:
+        job_posting.interested = jobsearch.models.InterestedChoices.REVIEWED
+        job_posting.reviewed_date = datetime.datetime.now()
+        with transaction.atomic():
+            job_posting.save()
+    else:
+        logger.warning('Could not find posting with key: {}'.format(identifier))
+
     return render(request, 'jobsearch/detail.html', {'job_posting': job_posting})
 
 
-def recruiter(request, company_name):
-    logger.debug('Into recruiter("%s")' % company_name)
-    
-    alias = models.CompanyAliases.objects.get(alias=company_name)
-    recruiter_company = get_object_or_404(models.RecruitingCompanies, pk=alias.companyname)
-    aliases = models.CompanyAliases.objects.filter(companyname=recruiter_company.name)
+def record_interest(request, identifier, interest):
+    logger.debug('Into record_interest("{}", "{}")'.format(identifier, interest))
+
+    job_posting = get_object_or_404(models.JobPostings, pk=identifier)
+    if job_posting and interest:
+        if interest in jobsearch.models.InterestedChoices.values:
+            job_posting.interested = interest
+            job_posting.reviewed_date = datetime.datetime.now()
+            with transaction.atomic():
+                job_posting.save()
+        else:
+            logger.warning('Could not find posting with key: {} or no interest was provided: {}'.format(identifier,
+                                                                                                        interest))
+    else:
+        logger.warning('Not a valid interest: {} for the identifier {}'.format(interest, identifier))
+    return render(request, 'jobsearch/detail.html', {'job_posting': job_posting})
+
+
+def recruiter(request, row_id):
+    logger.debug('Into recruiter({})'.format(row_id))
+
+    recruiter_company = get_object_or_404(models.RecruitingCompanies, row_id=row_id)
+    aliases = models.CompanyAliases.objects.filter(company_name=recruiter_company.name)
     return render(request, 'jobsearch/recruiter.html', {'recruiter_company': recruiter_company, 'aliases': aliases})
 
-   
+
+# def recruiter_by_name(request, company_name):
+#     logger.debug('Into recruiter_by_name({})'.format(company_name))
+#
+#     recruiter_company = get_object_or_404(models.RecruitingCompanies, row_id=row_id)
+#     aliases = models.CompanyAliases.objects.filter(company_name=recruiter_company.name)
+#     return render(request, 'jobsearch/recruiter.html', {'recruiter_company': recruiter_company, 'aliases': aliases})
+
+
+def recruiters(request):
+    logger.debug('Into recruiters')
+
+    if request.method == 'POST':
+        search_form = forms.CompanySearchForm(request.POST)
+        recruiters = get_list_or_404(models.RecruitingCompanies)
+    else:
+        search_form = forms.CompanySearchForm()
+        recruiters = get_list_or_404(models.RecruitingCompanies)
+    context = {
+        'search_form': search_form,
+        'companies': recruiters
+    }
+    return render(request, 'jobsearch/recruiters.html', context)
+
+
 def check_government_buy_sell(request):
     pass
 
@@ -208,12 +294,22 @@ def postings_as_json(request):
 def special(request):
     logger.debug('Into special()')
 
-    jobs_posted_list = models.JobPostings.objects.all()
-    for posting in jobs_posted_list:
-        json_str = posting.element_html
-        json_str = json_str.replace("\\\\", "")
-        posting.element_html = json.dumps(json_str[1:-1], indent=2)
-        logger.debug(posting.element_html)
-        with transaction.atomic():
-            posting.save()
+    # jobs_posted_list = models.JobPostings.objects.all()
+    # for posting in jobs_posted_list:
+    #     json_str = posting.element_html
+    #     json_str = json_str.replace("\\\\", "")
+    #     posting.element_html = json.dumps(json_str[1:-1], indent=2)
+    #     logger.debug(posting.element_html)
+    #     with transaction.atomic():
+    #         posting.save()
+    # num_postings = jobsearch.scraping.excelitr.scrape_new_job_postings()
+    # logger.debug('{} postings saved from jobsearch.scraping.excelitr.scrape_new_job_postings()'.format(num_postings))
+    num_postings = jobsearch.scraping.linkedin.scrape_new_job_postings()
+    logger.debug('{} postings saved from jobsearch.scraping.linkedin.scrape_new_job_postings()'.format(num_postings))
     return django.shortcuts.redirect('index')
+
+
+def show_contacts_with_recruiters(request):
+    logger.debug('Into show_contacts_with_recruiters()')
+
+    return render(request, 'jobsearch/contacts.html')

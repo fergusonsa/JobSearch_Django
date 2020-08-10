@@ -24,3 +24,9 @@ class JobSearchForm(forms.Form):
 
 class CompanySearchForm(forms.Form):
     company = forms.CharField(label='Company Name', max_length=70, required=False)
+
+
+class ContactSearchForm(forms.Form):
+    company_name = forms.CharField(label='Company Name', max_length=70, required=False)
+    contact_name = forms.CharField(label='Company Name', max_length=70, required=False)
+    contact_date = forms.DateField(widget=DateInput(), label='Contact Date', required=False)

@@ -1,14 +1,17 @@
-# This is an auto-generated Django model module.
-# You'll have to do the following manually to clean this up:
-#   * Rearrange models' order
-#   * Make sure each model has one field with primary_key=True
-#   * Make sure each ForeignKey has `on_delete` set to the desired behavior.
-#   * Remove `managed = False` lines if you wish to allow Django to create, modify, and delete the table
-# Feel free to rename the models, but don't rename db_table values or field names.
 from __future__ import unicode_literals
 
 from django.db import models
 import django.utils.timezone
+from django.utils.translation import gettext_lazy as _
+
+
+class InterestedChoices(models.TextChoices):
+    NOT_REVIEWED = '', _('Not reviewed')
+    REVIEWED = 'rev', _('Reviewed')
+    SUBMITTED = 'sub', _('Submitted')
+    CONTACTED = 'con', _('Contacted')
+    NOT_INTERESTED = 'not', _('Not Interested')
+    INTERESTED = 'int', _('Interested')
 
 
 class Printable:
@@ -24,6 +27,7 @@ class Printable:
 class CompanyAliases(models.Model, Printable):
     company_name = models.CharField(db_column='CompanyName', blank=True, null=False, max_length=70)
     alias = models.CharField(db_column='Alias', primary_key=True, blank=True, null=False, max_length=70)
+    inserted_date = models.DateTimeField(db_column='inserted_date', blank=True, null=True)
 
     class Meta:
         managed = False
@@ -35,18 +39,22 @@ class CompanyAliases(models.Model, Printable):
 
         
 class JobPostings(models.Model, Printable):
-    identifier = models.TextField(primary_key=True, db_column='Id', unique=True)  
+    identifier = models.TextField(primary_key=True, db_column='Id', unique=True)
     company = models.TextField(db_column='Company', blank=True, null=True, max_length=70)  
     title = models.TextField(db_column='Title')  
     locale = models.TextField(db_column='Locale', blank=True, null=True)  
     url = models.TextField(db_column='URL')  
+    source = models.TextField(db_column='source', blank=True, null=True)
     posted_date = models.DateTimeField(db_column='postedDate', blank=True, null=True)
-    inserted_date = models.DateTimeField(db_column='insertedDate', blank=True, default=django.utils.timezone.now)  
-    city = models.TextField(db_column='City', blank=True, null=True)  
-    province = models.TextField(db_column='Province', blank=True, null=True)  
-    search_terms = models.TextField(db_column='SearchTerms', blank=True, null=True)  
-    element_html = models.TextField(db_column='ElementHtml', blank=True, null=True)  
+    inserted_date = models.DateTimeField(db_column='insertedDate', blank=True, default=django.utils.timezone.now)
+    city = models.TextField(db_column='City', blank=True, null=True)
+    province = models.TextField(db_column='Province', blank=True, null=True)
+    search_terms = models.TextField(db_column='SearchTerms', blank=True, null=True)
+    element_html = models.TextField(db_column='ElementHtml', blank=True, null=True)
     distance_from_home = models.FloatField(db_column='DistanceFromHome')
+    reviewed_date = models.DateTimeField(db_column='reviewed_date', blank=True, null=True)
+    interested = models.CharField(db_column='interested', max_length=15,
+                                  choices=InterestedChoices.choices, default=InterestedChoices.NOT_REVIEWED)
 
     class Meta:
         managed = False
@@ -58,13 +66,14 @@ class JobPostings(models.Model, Printable):
     
     
 class RecruitingCompanies(models.Model, Printable):
+    row_id = models.IntegerField(db_column='rowid')
     name = models.TextField(db_column='Name', primary_key=True, blank=True, null=False, max_length=70)  
     date_contacted = models.DateTimeField(db_column='DateContacted', blank=True, null=True)  
     comment = models.TextField(db_column='Comment', blank=True, null=True)  
-    resume_submitted = models.NullBooleanField(db_column='ResumeSubmitted')  
-    not_interested = models.NullBooleanField(db_column='NotInterested')  
+    resume_submitted = models.BooleanField(db_column='ResumeSubmitted', null=True)
+    not_interested = models.BooleanField(db_column='NotInterested', null=True)
     url = models.TextField(db_column='URL', blank=True, null=True)  
-    cannot_submit_resume = models.NullBooleanField(db_column='CannotSubmitResume')  
+    cannot_submit_resume = models.BooleanField(db_column='CannotSubmitResume', null=True)
     date_inserted = models.DateTimeField(db_column='DateInserted', blank=True, null=True)  
     telephone = models.TextField(db_column='Telephone', blank=True, null=True)  
     contact_person = models.TextField(db_column='ContactPerson', blank=True, null=True)  
@@ -78,7 +87,11 @@ class RecruitingCompanies(models.Model, Printable):
         from pprint import pformat
         return "<" + type(self).__name__ + "> " + pformat(vars(self), indent=4)
 
-        
+
+class TemporaryId(models.Model):
+    id = models.TextField(db_column='ID', primary_key=True)
+
+
 class AuthGroup(models.Model):
     id = models.IntegerField(primary_key=True)  # AutoField?
     name = models.CharField(unique=True, max_length=80)
@@ -196,3 +209,21 @@ class DjangoSession(models.Model):
     class Meta:
         managed = False
         db_table = 'django_session'
+
+
+class ContactData(models.Model, Printable):
+    identifier = models.TextField(primary_key=True, db_column='Id', unique=True)
+    company_name = models.TextField(db_column='company_name', blank=True, null=True, max_length=70)
+    contact_name = models.TextField(db_column='contact_name', blank=True, null=True, max_length=70)
+    contact_type = models.TextField(db_column='contact_type')
+    date = models.DateTimeField(db_column='contact_date', blank=True, null=True)
+    comments = models.TextField(db_column='comments', blank=True, null=True)
+    inserted_date = models.DateTimeField(db_column='inserted_date', blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'contacts'
+
+    def __str__(self):
+        from pprint import pformat
+        return "<" + type(self).__name__ + "> " + pformat(vars(self), indent=4)

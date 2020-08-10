@@ -1,23 +1,16 @@
 # coding: utf-8
 import logging
 import datetime
-import pathlib
-import pprint
-import sys
 import re
 
-import django
-import indeed
 import requests
 from bs4 import BeautifulSoup
-from django.db import transaction, IntegrityError
-from django.utils import timezone
 import geopy.geocoders
 import geopy.distance
 import geopy.exc
 
+import jobsearch.scraping
 import jobsearch.models as models
-from python_miscelaneous import configuration
 
 NUMBER_POSTINGS_PER_REQUEST = 25
 
@@ -26,7 +19,8 @@ MAX_POSTINGS_RETRIEVED = 1000
 logger = logging.getLogger(__name__)
 
 job_site_details = {
-    'ca.indeed.com': {
+    'indeed': {
+        'source': 'indeed',
         'urlSchema': 'https',
         'netLoc': 'ca.indeed.com',
         'location': 'Canada',
@@ -174,13 +168,13 @@ def convert_ago_to_date(ago_str):
                         days=int(value))).strftime('%Y-%m-%d')
             else:
                 dt = ago_str
-    except Exception:
-        logger.error('Could not convert "{}" to a date'.format(ago_str))
+    except Exception as exc:
+        logger.error('Could not convert "{}" to a date'.format(ago_str), exc)
         dt = ago_str
     return dt
 
 
-def parse_html_page(page_html, job_site_details, aliases, geo_locator, home_location, geo_locations,
+def parse_html_page(page_html, source, job_site_details, aliases, geo_locator, home_location, geo_locations,
                     search_terms='',
                     verbose=False):
     """
@@ -249,11 +243,10 @@ def parse_html_page(page_html, job_site_details, aliases, geo_locator, home_loca
 
                 if value:
                     posting_info[field] = re.sub(r"^\s+|\s+$|\s+(?=\s)", "", value)
-            except Exception:
-                typ, val, _ = sys.exc_info()
+            except Exception as exc:
                 logger.error(('Unable to parse posting {} information for item: '
                               '\n\n{} \n\nError type: {}, val: {}').format(field, it,
-                                                                            typ, val))
+                                                                           type(exc), exc))
 
         if posting_info.get('id'):
             if posting_info.get('postedDate'):
@@ -264,8 +257,8 @@ def parse_html_page(page_html, job_site_details, aliases, geo_locator, home_loca
                 posting_info['url'] = 'http://{}{}'.format(
                     job_site_details['netLoc'], posting_info['url'])
             if posting_info.get('elem'):
-                link_elems = posting_info['elem'].findAll('a')
-                for linkElem in link_elems:
+                link_elements = posting_info['elem'].findAll('a')
+                for linkElem in link_elements:
                     if not linkElem['href'].startswith('http'):
                         if linkElem['href'].startswith('/'):
                             linkElem['href'] = 'http://{}{}'.format(
@@ -275,7 +268,8 @@ def parse_html_page(page_html, job_site_details, aliases, geo_locator, home_loca
                                 job_site_details['netLoc'], linkElem['href'])
             if posting_info.get('locale'):
                 posting_info['locale'] = posting_info['locale'].replace(' , ', ', ')
-            if save_posting_to_db(posting_info, aliases, geo_locator, home_location, geo_locations):
+            if jobsearch.scraping.save_posting_to_db(posting_info, source, search_terms, aliases,
+                                                     geo_locator, home_location, geo_locations):
                 postings_list[posting_info['id']] = posting_info
             if verbose:
                 logger.info(('Adding item details for id "{}" to list with posted'
@@ -286,8 +280,8 @@ def parse_html_page(page_html, job_site_details, aliases, geo_locator, home_loca
     return postings_list, len(items), total_number_jobs_found
 
 
-def sort_by_subdict(dictionary, subdict_key):
-    return sorted(dictionary.items(), key=lambda k_v: k_v[1][subdict_key])
+def sort_by_sub_dict(dictionary, sub_dict_key):
+    return sorted(dictionary.items(), key=lambda k_v: k_v[1][sub_dict_key])
 
 
 def login_to_web_site(session, job_site_detail_info):
@@ -318,7 +312,8 @@ def login_to_web_site(session, job_site_detail_info):
             job_site_detail_info))
 
 
-def get_postings_from_site_for_multiple_search_terms(job_site_details_info,
+def get_postings_from_site_for_multiple_search_terms(source,
+                                                     job_site_details_info,
                                                      search_terms_list,
                                                      aliases,
                                                      geo_locator,
@@ -343,7 +338,7 @@ def get_postings_from_site_for_multiple_search_terms(job_site_details_info,
 
     for searchTerm in search_terms_list:
         get_job_postings_from_site(
-            job_site_details_info, searchTerm, aliases,
+            source, job_site_details_info, searchTerm, aliases,
             geo_locator, home_location, geo_locations,
             expected_postings_per_page=expected_postings_per_page,
             max_pages=max_pages, min_pages=min_pages, session=session,
@@ -396,7 +391,7 @@ def check_for_more_postings(num_postings_on_page, expected_postings_per_page,
         return False
 
 
-def get_job_postings_from_site(job_site_details_info, search_term, aliases,
+def get_job_postings_from_site(source, job_site_details_info, search_term, aliases,
                                geo_locator, home_location, geo_locations,
                                expected_postings_per_page=10, max_pages=100,
                                min_pages=4, session=None, verbose=False):
@@ -430,7 +425,7 @@ def get_job_postings_from_site(job_site_details_info, search_term, aliases,
     logger.info('\n\nHere is initial URL to be "scraped": {}\n'.format(page.url))
 
     postings_list, num_postings_on_page, init_total_num_postings = parse_html_page(
-        page.text, job_site_details_info, aliases, geo_locator,
+        page.text, source, job_site_details_info, aliases, geo_locator,
         home_location, geo_locations, search_term, verbose)
     logger.info('Found {} new of {} postings of {} from url {}'.format(
         len(postings_list), num_postings_on_page,
@@ -448,117 +443,31 @@ def get_job_postings_from_site(job_site_details_info, search_term, aliases,
             page.text, job_site_details_info, aliases, geo_locator,
             home_location, geo_locations, search_term, verbose)
         logger.info('Found {} new of {} postings of {} from url {}'.format(len(postings_list),
-                                                                            num_postings_on_page,
-                                                                            total_number_jobs_found,
-                                                                            page.url))
+                                                                           num_postings_on_page,
+                                                                           total_number_jobs_found,
+                                                                           page.url))
 
 
-def get_geo_location(geo_locator, location_str, recursive_level=0):
-    try:
-        location = geo_locator.geocode(location_str)
-    except geopy.exc.GeocoderTimedOut:
-        if recursive_level < 4:
-            return get_geo_location(geo_locator, location_str, recursive_level + 1)
-        else:
-            logger.info('GeoCoder Timed out 5 times for {}, so skipping'.format(location_str))
-            return None
-    logger.info('Location info for {} is {}'.format(location_str, location))
-    return location
-
-
-def save_posting_to_db(posting, search_term, aliases, geo_locator, home_location, geo_locations):
-    if posting.get('expired', False):
-        logging.debug('Not saving expired Posting {}'.format(posting))
-        return False
-    company_name = posting.get('company')
-    if company_name and not aliases.filter(alias=company_name).exists():
-        if company_name and not models.RecruitingCompanies.objects.filter(name=company_name).exists():
-            new_date = timezone.now().strftime('%Y-%m-%d')
-            new_company = models.RecruitingCompanies.objects.create(name=company_name, date_inserted=new_date)
-            with transaction.atomic():
-                new_company.save()
-        new_company_alias = models.CompanyAliases.objects.create(company_name=company_name, alias=company_name)
-        with transaction.atomic():
-            new_company_alias.save()
-    city = posting['city']
-    prov = posting['state']
-    if city.lower() == 'kanata' and prov.lower() == 'on':
-        locale = '{}, Ottawa,   {}'.format(city, prov)
-    else:
-        locale = '{}, {}'.format(city, prov)
-    if locale not in geo_locations:
-        geo_locations[locale] = get_geo_location(geo_locator, locale)
-    if geo_locations.get(locale):
-        dist = round(geopy.distance.distance(home_location.point, geo_locations[locale].point).km, 0)
-    else:
-        dist = 0.0
-    try:                                                            # Thu, 02 Jul 2020 15:20:34 GMT
-        posted_date = datetime.datetime.strptime(posting.get('date'), '%a, %d %b %Y %H:%M:%S %Z')
-        db_posting = models.JobPostings.objects.create(
-            identifier=posting['jobkey'],
-            company=posting.get('company'),
-            title=posting['jobtitle'],
-            locale=locale,
-            url=posting['url'],
-            posted_date=django.utils.timezone.make_aware(posted_date),
-            city=city,
-            province=prov,
-            search_terms=search_term,
-            element_html=pprint.pformat(posting, indent=2),
-            distance_from_home=dist)
-        with transaction.atomic():
-            db_posting.save()
-        logger.debug('Saved posting id {}, title "{}", posted {} ({}), from {} to db'.format(posting['jobkey'],
-                                                                                             posting['jobtitle'],
-                                                                                             posted_date,
-                                                                                             posting['date'],
-                                                                                             posting.get('company')))
-        return True
-    except IntegrityError as e:
-        # db_posting.delete()
-
-        logger.warning('IntegrityError %s occurred while trying to insert posting %s %s %s.' % (
-            e, posting['jobkey'], posting['jobtitle'], posting.get('company')))
-        return False
-    except Exception as e:
-        logger.error('Exception %s occurred while trying to insert posting %s %s %s.' % (
-            e, posting['jobkey'], posting['jobtitle'], posting.get('company')), e)
-        return False
-
-
-def scrape_new_job_postings():
-
-    search_terms_list = ['java', 'devops', 'python', ]
-    site_list = job_site_details
-    aliases = models.CompanyAliases.objects.all()
-
-    geo_locator = geopy.geocoders.Nominatim(user_agent="JobSearch")
-    # Get coordinates for home
-    home_location_str = '1695 Playfair Drive, Ottawa, ON, Canada'
-    home_location = get_geo_location(geo_locator, home_location_str)
-    geo_locations = {}
-
-    for job_site_details_info in site_list.values():
-        get_postings_from_site_for_multiple_search_terms(
-            job_site_details_info,
-            search_terms_list,
-            aliases,
-            geo_locator,
-            home_location,
-            geo_locations)
-
-
-def get_indeed_postings():
-    config = configuration.get_configuration('jobSearch_config', location_path=pathlib.Path('~/jobSearch'),
-                                             config_type=configuration.CONFIGURATION_TYPE_JSON)
-    client = indeed.IndeedClient(config.get('indeed_publisher'))
-    search_terms_list = ['java', 'devops', 'python', ]
-    geo_locator = geopy.geocoders.Nominatim(user_agent="JobSearch")
+def get_dice_postings(config=None, geo_locator=None, geo_locations=None):
+    if not config:
+        config = jobsearch.scraping.get_configuration()
+    if not geo_locator:
+        geo_locator = geopy.geocoders.Nominatim(user_agent="JobSearch")
     # Get coordinates for home
     home_location_str = config.get('home_location')
-    home_location = get_geo_location(geo_locator, home_location_str)
-    geo_locations = {}  # Cache of geo locations, so do not have to get the same location multiple times
+    home_location = jobsearch.scraping.get_geo_location(geo_locator, home_location_str)
+    if not geo_locations:
+        geo_locations = {}  # Cache of geo locations, so do not have to get the same location multiple times
 
+    search_terms_list = ['java', 'devops', 'python', ]
+
+    client = None
+
+    if not client:
+        logger.warning('Dice posting retrieval not implemented yet!')
+        return 0
+
+    inserted_timestamp = datetime.datetime.now()
     for search_term in search_terms_list:
         start_index = 0
         get_more_postings = True
@@ -566,6 +475,7 @@ def get_indeed_postings():
             get_more_postings = False
             params = {
                 'q': search_term,
+                'jt': 'contract',
                 'l': "ottawa,ontario,canada",
                 'userip': "1.2.3.4",
                 'useragent': "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_2)",
@@ -582,7 +492,9 @@ def get_indeed_postings():
                 aliases = models.CompanyAliases.objects.all()
 
                 for posting in results_postings:
-                    if save_posting_to_db(posting, search_term, aliases, geo_locator, home_location, geo_locations):
+                    if jobsearch.scraping.save_posting_to_db(posting, 'dice', search_term, aliases,
+                                                             geo_locator, home_location, geo_locations):
+                        # If we saved at least 1 posting, then we can try getting more postings from the source!
                         get_more_postings = True
                 start_index += len(results_postings)
             if not results_postings:
@@ -593,9 +505,10 @@ def get_indeed_postings():
                     MAX_POSTINGS_RETRIEVED))
                 break
 
-    saved_postings = models.JobPostings.objects.all()
-    saved_aliases = models.CompanyAliases.objects.all()
-    saved_recruiters = models.RecruitingCompanies.objects.all()
-    logger.debug('# postings saved: {}   # aliases: {}   # recruiters: {} '.format(len(saved_postings),
-                                                                                   len(saved_aliases),
-                                                                                   len(saved_recruiters)))
+    num_new_postings = models.JobPostings.objects.filter(inserted_date__gte=inserted_timestamp).count()
+    num_saved_aliases = models.CompanyAliases.objects.filter(inserted_date__gte=inserted_timestamp).count()
+    num_saved_recruiters = models.RecruitingCompanies.objects.filter(date_inserted__gte=inserted_timestamp).count()
+    logger.debug('# new postings from Dice saved: {}   # aliases: {}   # recruiters: {} '.format(num_new_postings,
+                                                                                                 num_saved_aliases,
+                                                                                                 num_saved_recruiters))
+    return num_new_postings

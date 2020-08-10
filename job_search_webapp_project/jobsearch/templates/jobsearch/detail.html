@@ -1,23 +1,31 @@
     {% load static %}
 <link rel="stylesheet" type="text/css" href="{% static 'jobsearch/style.css' %}" />
 {% if job_posting %}
-
 <br/>
 <span class='label'>Title</span> {{ job_posting.title }}  <br/>
 <span class='label'>Identifier</span> {{ job_posting.identifier }}<br/>
 <span class='label'>Company</span> <a href="/jobsearch/recruiter/{{ job_posting.company }}/">{{ job_posting.company }}</a><br/>
 <span class='label'>Locale</span> {{ job_posting.locale }}    <br/>
-<span class='label'>Url</span> <a href="{{ job_posting.url }}">{{ job_posting.url }}</a>   <br/>
+<span class='label'>Url</span> <a target="_blank" href="{{ job_posting.url }}">{{ job_posting.url }}</a>   <br/>
 <span class='label'>Posted Date</span> {{ job_posting.posted_date }}<br/>
 <span class='label'>Inserted Date</span> {{ job_posting.inserted_date }}<br/>
+<span class='label'>Reviewed Date</span> {{ job_posting.reviewed_date }}<br/>
+<span class='label'>Interest</span> {{ job_posting.interested }}
+    <a href="/jobsearch/{{ job_posting.identifier}}/int">Interested</a>
+    <a href="/jobsearch/{{ job_posting.identifier}}/not">Not Interested</a>
+    <a href="/jobsearch/{{ job_posting.identifier}}/sub">Submitted</a>
+    <a href="/jobsearch/{{ job_posting.identifier}}/con">Contacted</a>
+    <br/>
 <span class='label'>City</span> {{ job_posting.city }}<br/>
 <span class='label'>Province</span> {{ job_posting.province }}<br/>
 <span class='label'>Search Terms</span> {{ job_posting.search_terms }} <br/>
 <span class='label'>Element HTML safe</span> <div class='orig_elem'>{{ job_posting.element_html|safe }} </div>
-<br/>
-
 
 {% else %}
     <p>No job postings are not available.</p>
 {% endif %}
+<br/>
 
+
+
+<a href="/jobsearch/">Back to home</a>

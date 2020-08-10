@@ -51,6 +51,7 @@ td.post-elem {
 td.snip {
 	border: 0px;
 }
+
 .label {
     color: black; 
     font-weight: bold;
@@ -64,7 +65,7 @@ div.orig_elem {
     white-space: pre;
 }
 
-#id_company, #id_insertedDateStart_month, #id_postedDateStart_month, #id_postedDateEnd_month, #id_location, #id_sort_by {
+#id_company, #id_insertedDateStart, #id_postedDateStart, #id_postedDateEnd, #id_location, #id_sort_by {
 	position: absolute;
 	left: 150px;
 }

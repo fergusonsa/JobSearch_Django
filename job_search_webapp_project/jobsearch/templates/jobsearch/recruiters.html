@@ -1,0 +1,87 @@
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'jobsearch/style.css' %}" />
+
+<table class='postings-table'>
+    <tr>
+        <th>Company</th>
+        <th class='datetime-col'>Last Contact</th>
+        <th>Contact Person</th>
+        <th>Telephone</th>
+        <th>Website</th>
+        <th>Nearest Location</th>
+        <th>Resume submitted</th>
+        <th>Not interested</th>
+        <th class='datetime-col'>Inserted</th>
+    </tr>
+    {% for recruiter in companies %}
+    <tr>
+        <td><a href="/jobsearch/recruiter/{{ recruiter.row_id }}">{{ recruiter.name }}</a></td>
+        <td class='datetime-col'>{{ recruiter.date_contacted|date:'Y-m-d H:i' }}</td>
+        <td>{{ recruiter.contact_person }}</td>
+        <td>{{ recruiter.telephone }}</td>
+        <td><a target="_blank" href="{{ recruiter.url }}/">{{ recruiter.url }}</a></td>
+        <td>{{ recruiter.nearest_office }}</td>
+        <td>{{ recruiter.resume_submitted }}</td>
+        <td>{{ recruiter.not_interested }}</td>
+        <td class='datetime-col'>{{ recruiter.date_inserted|date:'Y-m-d H:i' }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+<hr>
+<h2>Filter</h2>
+<form action="/jobsearch/recruiters" method="post">
+{% csrf_token %}
+{% if form.subject.errors %}
+    <ol>
+    {% for error in form.subject.errors %}
+        <li><strong>{{ error|escape }}</strong></li>
+    {% endfor %}
+    </ol>
+{% endif %}
+    {{ search_form.as_p }}
+    <input type="submit" value="Submit" />
+</form>
+
+<hr>
+
+<form action="/jobsearch/import/" method="post">
+{% csrf_token %}
+    <input type="submit" value="Import" />
+</form>
+
+<form action="/jobsearch/gov_b_s/" method="post">
+{% csrf_token %}
+    <input type="submit" value="Government BuyAndSell" />
+</form>
+
+
+
+{% if recruiter_company %}
+
+    {{ recruiter_company }}
+    <br/>
+    <span class='label'>Name </span> {{ recruiter_company.name }}<br/>
+    <span class='label'>Date Contacted</span> {{ recruiter_company.date_contacted }}<br/>
+    <span class='label'>Comment</span> {{ recruiter_company.comment }}<br/>
+    <span class='label'>Resume Submitted</span> {{ recruiter_company.resume_submitted }}<br/>
+    <span class='label'>Not Interested</span> {{ recruiter_company.not_interested }}<br/>
+    <span class='label'>Url</span> <a href="{{ recruiter_company.url }}">{{ recruiter_company.url }}</a>  <br/>
+    <span class='label'>Cannot Submit Resume</span> {{ recruiter_company.cannot_submit_resume }}<br/>
+    <span class='label'>Date Inserted</span> {{ recruiter_company.date_inserted }}<br/>
+    <span class='label'>Telephone</span> {{ recruiter_company.telephone }}<br/>
+    <span class='label'>Contact Person</span> {{ recruiter_company.contact_person }}<br/>
+    <span class='label'>Nearest Office</span> {{ recruiter_company.nearest_office }}  <br/>
+    <br/>
+    {% if aliases and aliases|length > 1 %}
+    <span class='label'>Aliases</span><br/>
+    <ul>
+    {% for alias in aliases %}
+        <li>{{ alias }}</li>
+    {% endfor %}
+    </ul>
+    {% endif %}
+
+{% else %}
+    <p>Specified Recruiter Company is not available.</p>
+{% endif %}
