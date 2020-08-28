@@ -11,7 +11,9 @@ urlpatterns = [
     url(r'^get_postings/$', jobsearch.views.postings_as_json, name='get_postings'),
     # ex: /jobsearch/listing
     #     url(r'^listing/$', jobsearch.views.listing, name='listing'),
-    # ex: /jobsearch/special
+    # ex: /jobsearch/linkedin_login
+    url(r'^linkedin_login/$', jobsearch.views.linkedin_login, name='linkedin_login'),
+    # ex: /jobsearch/recruiters/
     url(r'^special/$', jobsearch.views.special, name='special'),
     # ex: /jobsearch/recruiters/
     url(r'^recruiters/$', jobsearch.views.recruiters, name='recruiters'),
@@ -22,8 +24,8 @@ urlpatterns = [
     # ex: /jobsearch/gov_b_s/list
     url(r'^gov_b_s/list/$', jobsearch.views.list_government_buy_sell, name='list_government_buy_sell'),
     # ex: /jobsearch/5/
-    url(r'^(?P<identifier>[a-zA-Z0-9._-]+)/$', jobsearch.views.detail, name='detail'),
+    url(r'^(?P<identifier>[a-zA-Z0-9 ._)(-]+)/$', jobsearch.views.detail, name='detail'),
     # ex: /jobsearch/5/int
-    url(r'^(?P<identifier>[a-zA-Z0-9._-]+)/(?P<interest>[a-z]+)$', jobsearch.views.record_interest,
+    url(r'^(?P<identifier>[a-zA-Z0-9 ._)(-]+)/(?P<interest>[a-z]+)$', jobsearch.views.record_interest,
         name='record_interest'),
 ]

@@ -16,6 +16,8 @@ import jobsearch.scrapeJobPostings
 import jobsearch.scraping.excelitr
 import jobsearch.scraping.indeed
 import jobsearch.scraping.linkedin
+import jobsearch.scraping.myticas
+import jobsearch.scraping.sisystems
 
 
 logger = logging.getLogger(__name__)
@@ -294,6 +296,7 @@ def postings_as_json(request):
 def special(request):
     logger.debug('Into special()')
 
+    # ExcelITR testing
     # jobs_posted_list = models.JobPostings.objects.all()
     # for posting in jobs_posted_list:
     #     json_str = posting.element_html
@@ -304,8 +307,14 @@ def special(request):
     #         posting.save()
     # num_postings = jobsearch.scraping.excelitr.scrape_new_job_postings()
     # logger.debug('{} postings saved from jobsearch.scraping.excelitr.scrape_new_job_postings()'.format(num_postings))
-    num_postings = jobsearch.scraping.linkedin.scrape_new_job_postings()
-    logger.debug('{} postings saved from jobsearch.scraping.linkedin.scrape_new_job_postings()'.format(num_postings))
+
+    # Linkedin testing
+    # num_postings = jobsearch.scraping.linkedin.scrape_new_job_postings()
+    # logger.debug('{} postings saved from jobsearch.scraping.linkedin.scrape_new_job_postings()'.format(num_postings))
+
+    # Myticas testing
+    num_postings = jobsearch.scraping.myticas.scrape_new_job_postings()
+    logger.debug('{} postings saved from jobsearch.scraping.myticas.scrape_new_job_postings()'.format(num_postings))
     return django.shortcuts.redirect('index')
 
 
@@ -313,3 +322,7 @@ def show_contacts_with_recruiters(request):
     logger.debug('Into show_contacts_with_recruiters()')
 
     return render(request, 'jobsearch/contacts.html')
+
+
+def linkedin_login():
+    return None

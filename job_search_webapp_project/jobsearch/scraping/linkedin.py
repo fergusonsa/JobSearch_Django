@@ -1,14 +1,78 @@
 import logging
+import random
+import string
 
 import django
 import geopy
+import requests
+from requests_oauthlib import OAuth2Session
+from requests_oauthlib.compliance_fixes import linkedin_compliance_fix
 from django.db import transaction
-from linkedin import linkedin
+from linkedin_v2 import linkedin
 
 import jobsearch.scraping
 from jobsearch import scrapeJobPostings, models
 
+# OAuth endpoints given in the LinkedIn API documentation
+AUTHORIZATION_URL = "https://www.linkedin.com/oauth/v2/authorization"
+ACCESS_TOKEN_URL = 'https://www.linkedin.com/oauth/v2/accessToken'
+
 logger = logging.getLogger(__name__)
+
+
+def login_using_oauth(linkedin_config):
+    client_id = linkedin_config.get('APPLICATION_KEY')
+
+    linkedin = OAuth2Session(client_id, redirect_uri=linkedin_config.get('RETURN_URL'))
+    linkedin = linkedin_compliance_fix(linkedin)
+
+    # Redirect user to LinkedIn for authorization
+    authorization_url, state = linkedin.authorization_url(AUTHORIZATION_URL)
+    print('Please go here and authorize,', authorization_url)
+
+
+def authorization_callback(linkedin_config, redirect_response):
+    client_id = linkedin_config.get('APPLICATION_KEY')
+    client_secret = linkedin_config.get('APPLICATION_SECRET')
+    linkedin = OAuth2Session(client_id, redirect_uri=linkedin_config.get('RETURN_URL'))
+    linkedin = linkedin_compliance_fix(linkedin)
+
+    # Fetch the access token
+    linkedin.fetch_token(ACCESS_TOKEN_URL, client_secret=client_secret, authorization_response=redirect_response)
+
+    # Fetch a protected resource, i.e. user profile
+    r = linkedin.get('https://api.linkedin.com/v1/people/~')
+    print(r.content)
+
+# def test():
+#     # Generate a random string to protect against cross-site request forgery
+#     letters = string.ascii_lowercase
+#     CSRF_TOKEN = ''.join(random.choice(letters) for i in range(24))
+#
+#     # Request authentication URL
+#     auth_params = {'response_type': 'code',
+#                    'client_id': linkedin_config.get('APPLICATION_KEY'),
+#                    'redirect_uri': linkedin_config.get('RETURN_URL'),
+#                    'state': CSRF_TOKEN,
+#                    'scope': 'r_liteprofile,r_emailaddress,w_member_social'}
+#
+#     html = requests.get(AUTHORIZATION_URL,
+#                         params=auth_params)
+#
+#     qd = {'grant_type': 'authorization_code',
+#           'code': linkedin_config.get('AUTH_CODE'),
+#           'redirect_uri': linkedin_config.get('RETURN_URL'),
+#           'client_id': linkedin_config.get('APPLICATION_KEY'),
+#           'client_secret': linkedin_config.get('APPLICATION_SECRET')}
+#
+#     response = requests.post(ACCESS_TOKEN_URL, data=qd, timeout=60)
+#
+#     response = response.json()
+#
+#     access_token = response['access_token']
+#
+#     print("Access Token:", access_token)
+#     print("Expires in (seconds):", response['expires_in'])
 
 
 def scrape_new_job_postings(config=None, geo_locator=None, geo_locations=None, home_location=None):
@@ -28,6 +92,8 @@ def scrape_new_job_postings(config=None, geo_locator=None, geo_locations=None, h
 
     search_terms_list = ['java', 'devops', 'python', ]
     aliases = models.CompanyAliases.objects.all()
+    num_saved = 0
+    inserted_timestamp = django.utils.timezone.now()
 
     authentication = linkedin.LinkedInAuthentication(
         linkedin_config.get('APPLICATION_KEY'),
@@ -36,8 +102,6 @@ def scrape_new_job_postings(config=None, geo_locator=None, geo_locations=None, h
         linkedin.PERMISSIONS.enums.values()
     )
     application = linkedin.LinkedInApplication(authentication)
-    num_saved = 0
-    inserted_timestamp = django.utils.timezone.now()
 
     home_postal_code = linkedin_config.get('home_postal')
     num_jobs_to_return = 10
