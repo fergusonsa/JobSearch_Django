@@ -126,42 +126,7 @@ def import_postings(request):
     form.company = None
     form.location = None
     form.sort_by = 'distance_from_home'
-    geo_locations = {}
-    config = jobsearch.scraping.get_configuration()
-    geo_locator = geopy.geocoders.Nominatim(user_agent="JobSearch")
-    home_location_str = config.get('home_location')
-    home_location = jobsearch.scraping.get_geo_location(geo_locator, home_location_str)
-
-    num_imported_from_indeed = jobsearch.scraping.indeed.scrape_new_job_postings(config=config,
-                                                                                 geo_locator=geo_locator,
-                                                                                 geo_locations=geo_locations,
-                                                                                 home_location=home_location)
-    logger.debug('Number of postings from Indeed: {}'.format(num_imported_from_indeed))
-    # num_imported_from_dice = jobsearch.scrapeJobPostings.scrape_new_job_postings(config=config,
-    #                                                                        geo_locator=geo_locator,
-    #                                                                        geo_locations=geo_locations,
-    #                                                                        home_location=home_location)
-    # logger.debug('Number of postings from Dice: {}'.format(num_imported_from_dice))
-    # num_imported_from_linkedin = jobsearch.scraping.linkedin.scrape_new_job_postings(config=config,
-    #                                                                                  geo_locator=geo_locator,
-    #                                                                                  geo_locations=geo_locations,
-    #                                                                                  home_location=home_location)
-    # logger.debug('Number of postings from Linkedin: {}'.format(num_imported_from_linkedin))
-    # num_imported_from_excelitr = jobsearch.scraping.excelitr.scrape_new_job_postings(config=config,
-    #                                                                                  geo_locator=geo_locator,
-    #                                                                                  geo_locations=geo_locations,
-    #                                                                                  home_location=home_location)
-    # logger.debug('Number of postings from Excel: {}'.format(num_imported_from_excelitr))
-    # num_imported_from_sisystems = jobsearch.scraping.sisystems.scrape_new_job_postings(config=config,
-    #                                                                                  geo_locator=geo_locator,
-    #                                                                                  geo_locations=geo_locations,
-    #                                                                                  home_location=home_location)
-    # logger.debug('Number of postings from SI Systems: {}'.format(num_imported_from_sisystems))
-    # num_imported_from_myticas = jobsearch.scraping.myticas.scrape_new_job_postings(config=config,
-    #                                                                                geo_locator=geo_locator,
-    #                                                                                geo_locations=geo_locations,
-    #                                                                                home_location=home_location)
-    # logger.debug('Number of postings from Myticas: {}'.format(num_imported_from_myticas))
+    jobsearch.scraping.get_all_new_postings()
     return index(request, form)
     # return django.shortcuts.redirect('index')
 
@@ -291,6 +256,13 @@ def postings_as_json(request):
         latest_jobs_posted_list = models.JobPostings.objects.order_by('-posted_date')[:5]
     json = serializers.serialize('json', latest_jobs_posted_list)
     return HttpResponse(json, content_type='application/json')
+
+
+def special_2(request):
+    logger.debug('Into special()')
+    import apscheduler.schedulers.background
+    scheduler = apscheduler.schedulers.background.BackgroundScheduler()
+    jobs = scheduler.get_jobs()
 
 
 def special(request):

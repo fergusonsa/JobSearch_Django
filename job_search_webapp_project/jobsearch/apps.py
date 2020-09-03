@@ -1,3 +1,5 @@
+import logging
+
 from django.apps import AppConfig
 
 
@@ -13,4 +15,7 @@ class JobsearchConfig(AppConfig):
                                                  location_path=pathlib.Path('~/jobSearch'),
                                                  config_type=configuration.CONFIGURATION_TYPE_JSON)
         if not config:
-            pass
+            logging.warning('Could not find the configuration file ~/jobSearch/jobSearch_config.json')
+
+        import scheduler.postingsScraper
+        scheduler.postingsScraper.start()
