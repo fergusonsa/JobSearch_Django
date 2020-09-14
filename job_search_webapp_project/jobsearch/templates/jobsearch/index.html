@@ -8,7 +8,7 @@
         <th class='datetime-col'>Date Inserted</th>
         <th>Company</th>
         <th>Location</th>
-        <th class="distance-col">Distance From Home</th>
+        <th>Interest</th>
         <th>Source</th>
     </tr>
     {% for posting in latest_jobs_posted_list %}
@@ -18,8 +18,8 @@
         <td class='datetime-col'>{{ posting.inserted_date|date:'Y-m-d H:i' }}</td>
         <td>{{ posting.company }}</td>
         <td>{{ posting.locale }}</td>
-        <td class='right-align'>{{ posting.distance_from_home }}</td>
-        <td>{{posting.source}}</td>
+        <td>{{ posting.interested }}</td>
+        <td>{{ posting.source }}</td>
     </tr>
 <!--    <tr>-->
 <!--    	<td colspan=6 class='post-elem'>{{ posting.element_html|safe  }}</td>-->
@@ -32,7 +32,7 @@
 
 <hr>
 <h2>Filter</h2>
-<form action="/jobsearch/" method="post">
+<form action="/jobsearch/" method="post" id="filterForm">
 {% csrf_token %}
 {% if form.subject.errors %}
     <ol>
@@ -43,6 +43,7 @@
 {% endif %}
     {{ search_form.as_p }}
     <input type="submit" value="Submit" />
+<!--    <input type="submit" value="New Postings" onclick="filterNewPostings(this);"/>-->
 </form>
 
 <hr>

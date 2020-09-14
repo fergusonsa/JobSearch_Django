@@ -1,4 +1,7 @@
 from django import forms
+from django.utils.translation import gettext_lazy as _
+
+import jobsearch.models
 
 
 class DateInput(forms.DateInput):
@@ -6,7 +9,7 @@ class DateInput(forms.DateInput):
 
 
 class JobSearchForm(forms.Form):
-    
+
     company = forms.CharField(label='Company Name', max_length=70, required=False)
     insertedDateStart = forms.DateField(widget=DateInput(),
                                         label='After Inserted Date',
@@ -20,6 +23,10 @@ class JobSearchForm(forms.Form):
                                          ('-locale', 'Locale'),
                                          ('-posted_date', 'Date Posted'),
                                          ('-inserted_date', 'Date Scraped')])
+    interest_choices = jobsearch.models.InterestedChoices.choices
+    interest_choices.insert(0, ('ALL', 'All'))
+    interest = forms.ChoiceField(label='Interest', required=False,
+                                 choices=interest_choices)
 
 
 class CompanySearchForm(forms.Form):

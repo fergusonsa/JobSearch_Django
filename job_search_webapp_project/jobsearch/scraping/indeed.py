@@ -56,14 +56,16 @@ def scrape_new_job_postings(config=None, geo_locator=None, geo_locations=None, h
             }
             logger.debug("Getting postings for {} starting index {}".format(search_term, start_index))
             search_response = client.search(**params)
-            logger.debug(search_response)
+            # logger.debug(search_response)
             results_postings = search_response.get('results')
             if results_postings:
                 aliases = models.CompanyAliases.objects.all()
-
+                posting_ids = [posting['jobkey'] for posting in results_postings]
+                new_posting_ids = jobsearch.scraping.get_list_of_ids_not_in_db(posting_ids, 'indeed')
+                logger.info('Going to get {} new postings of {} available.'.format(len(new_posting_ids), len(posting_ids)))
                 for posting in results_postings:
-                    if jobsearch.scraping.save_posting_to_db(posting, 'indeed', search_term, aliases,
-                                                             geo_locator, home_location, geo_locations):
+                    if posting['jobkey'] in new_posting_ids and jobsearch.scraping.save_posting_to_db(
+                            posting, 'indeed', search_term, aliases, geo_locator, home_location, geo_locations):
                         get_more_postings = True
                 start_index += len(results_postings)
             if not results_postings:

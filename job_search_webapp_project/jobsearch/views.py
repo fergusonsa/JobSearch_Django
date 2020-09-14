@@ -19,30 +19,11 @@ import jobsearch.scraping.linkedin
 import jobsearch.scraping.myticas
 import jobsearch.scraping.sisystems
 
+MAX_POSTINGS_TO_RETURN = 25
 
 logger = logging.getLogger(__name__)
 
 
-# def index(request):
-#     logger.debug('Into index()')
-#         # if this is a POST request we need to process the form data
-#     if request.method == 'POST':
-#         # create a form instance and populate it with data from the request:
-#         form = forms.JobSearchForm(None, request.POST)
-# 
-#     # if a GET (or any other method) we'll create a blank form
-#     else:
-#         form = forms.JobSearchForm()
-#         
-#     latest_jobs_posted_list = models.Jobpostings.objects.order_by('-posteddate')[:5]
-#     template = loader.get_template('jobsearch/index.html')
-#     context = {
-#         'search_form': form,
-#         'latest_jobs_posted_list': latest_jobs_posted_list,
-#     }
-#     return HttpResponse(template.render(context, request))
-
-    
 def index(request, job_search_form=None, after_inserted_date=None):
     logger.debug('Into listing()')
     # if this is a POST request we need to process the form data
@@ -67,6 +48,7 @@ def index(request, job_search_form=None, after_inserted_date=None):
                 end_date = job_search_form.postedDateEnd
                 location = job_search_form.location
                 sort_by_choice = job_search_form.sort_by
+                interest = job_search_form.interest
             else:
                 company = form.cleaned_data['company']
                 after_inserted_date = form.cleaned_data['insertedDateStart']
@@ -75,10 +57,11 @@ def index(request, job_search_form=None, after_inserted_date=None):
 
                 location = form.cleaned_data['location']
                 sort_by_choice = form.cleaned_data.get('sort_by')
+                interest = form.cleaned_data.get('interest')
 
             queries = Q()
             if company:
-                queries = queries & Q(company__icontains=company) 
+                queries = queries & Q(company__icontains=company)
             if start_date:
                 queries = queries & Q(posted_date__gte=start_date)
             if end_date:
@@ -87,6 +70,8 @@ def index(request, job_search_form=None, after_inserted_date=None):
                 queries = queries & Q(location__icontains=location)
             if after_inserted_date:
                 queries = queries & Q(inserted_date__gte=after_inserted_date)
+            if interest != 'ALL':
+                queries = queries & Q(interested=interest)
             if sort_by_choice:
                 latest_jobs_posted_list = models.JobPostings.objects.order_by(sort_by_choice)
             else:
@@ -95,17 +80,17 @@ def index(request, job_search_form=None, after_inserted_date=None):
             if queries:
                 logger.debug('Postings filters: {}'.format(queries))
                 latest_jobs_posted_list = latest_jobs_posted_list.filter(queries)
-            else: 
-                latest_jobs_posted_list = latest_jobs_posted_list[:5]
+            else:
+                latest_jobs_posted_list = latest_jobs_posted_list[:MAX_POSTINGS_TO_RETURN]
         else:
             logger.debug('Looks like the form is invalid?!')
             logger.debug(form)
-            latest_jobs_posted_list = models.JobPostings.objects.order_by('-posted_date')[:5]
+            latest_jobs_posted_list = models.JobPostings.objects.order_by('-posted_date')[:MAX_POSTINGS_TO_RETURN]
     
     # if a GET (or any other method) we'll create a blank form
     else:
         form = forms.JobSearchForm()
-        latest_jobs_posted_list = models.JobPostings.objects.order_by('-posted_date')[:5]
+        latest_jobs_posted_list = models.JobPostings.objects.order_by('-posted_date')[:MAX_POSTINGS_TO_RETURN]
 
     logger.debug('number of postings being returned: {}'.format(len(latest_jobs_posted_list)))
         

@@ -37,20 +37,23 @@ def scrape_new_job_postings(config=None, geo_locator=None, geo_locations=None, h
         query_parts = urllib.parse.parse_qs(url_parts.query)
         search_term = query_parts.get('search_keywords', ['unknown'])[0]
         num_saved = 0
+        posting_ids = [entry.title for entry in feed.entries]
+        new_posting_ids = jobsearch.scraping.get_list_of_ids_not_in_db(posting_ids, 'myticas')
         for entry in feed.entries:
-            locale = entry.get("job_listing_location")
-            posting = {
-                "url": entry.link,
-                "locale": locale,
-                "date_parsed": datetime.datetime.fromtimestamp(time.mktime(entry.published_parsed)),
-                "jobtitle": entry.title,
-                "jobkey": entry.title,
-                "company": "Myticas",
-                "description": entry.content
-            }
-            if jobsearch.scraping.save_posting_to_db(posting, 'myticas', search_term, aliases,
-                                                     geo_locator, home_location, geo_locations):
-                num_saved += 1
+            if entry.title in new_posting_ids:
+                locale = entry.get("job_listing_location")
+                posting = {
+                    "url": entry.link,
+                    "locale": locale,
+                    "date_parsed": datetime.datetime.fromtimestamp(time.mktime(entry.published_parsed)),
+                    "jobtitle": entry.title,
+                    "jobkey": entry.title,
+                    "company": "Myticas",
+                    "description": entry.content
+                }
+                if jobsearch.scraping.save_posting_to_db(posting, 'myticas', search_term, aliases,
+                                                         geo_locator, home_location, geo_locations):
+                    num_saved += 1
         logging.debug("{} postings saved from {} total postings from rss url {}".format(num_saved, len(feed.entries),
                                                                                         rss_url))
         total_num_saved = total_num_saved + num_saved

@@ -226,3 +226,24 @@ def get_all_new_postings():
                                                                                    geo_locations=geo_locations,
                                                                                    home_location=home_location)
     logger.debug('Number of postings from Myticas: {}'.format(num_imported_from_myticas))
+
+
+def get_list_of_ids_not_in_db(posting_ids, source):
+    if len(posting_ids):
+        try:
+            jobsearch.models.TemporaryId.objects.all().delete()
+            id_objs = [jobsearch.models.TemporaryId(id=posting_id) for posting_id in posting_ids]
+            jobsearch.models.TemporaryId.objects.bulk_create(id_objs)
+            response = jobsearch.models.TemporaryId.objects.raw(
+                ("SELECT jobsearch_TemporaryId.* FROM jobsearch_TemporaryId LEFT JOIN jobsearch_JobPostings ON "
+                 "jobsearch_TemporaryId.Id = jobsearch_JobPostings.Id and jobsearch_JobPostings.source = %s WHERE "
+                 "jobsearch_JobPostings.Id IS NULL;"), [source])
+            new_uids = [row.id for row in response]
+            jobsearch.models.TemporaryId.objects.all().delete()
+            return new_uids
+        except Exception as exc:
+            logger.warning('Exception {} occurred while trying to get list of ids not in db from {} for source {}. '
+                           'Not filtering any.'.format(exc, posting_ids, source))
+            return posting_ids
+    else:
+        return []

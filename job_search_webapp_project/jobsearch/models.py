@@ -58,7 +58,7 @@ class JobPostings(models.Model, Printable):
 
     class Meta:
         managed = False
-        db_table = 'JobPostings'
+        # db_table = 'JobPostings'
 
     def __str__(self):
         from pprint import pformat
@@ -90,6 +90,10 @@ class RecruitingCompanies(models.Model, Printable):
 
 class TemporaryId(models.Model):
     id = models.TextField(db_column='ID', primary_key=True)
+
+    # class Meta:
+    #     # managed = False
+    #     db_table = 'Temporary_Ids'
 
 
 class AuthGroup(models.Model):

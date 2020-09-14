@@ -1,19 +1,16 @@
 import logging
-import random
-import string
 
 import django
 import geopy
-import requests
 from requests_oauthlib import OAuth2Session
 from requests_oauthlib.compliance_fixes import linkedin_compliance_fix
-from django.db import transaction
 from linkedin_v2 import linkedin
 
 import jobsearch.scraping
-from jobsearch import scrapeJobPostings, models
+from jobsearch import models
 
 # OAuth endpoints given in the LinkedIn API documentation
+
 AUTHORIZATION_URL = "https://www.linkedin.com/oauth/v2/authorization"
 ACCESS_TOKEN_URL = 'https://www.linkedin.com/oauth/v2/accessToken'
 
@@ -121,7 +118,7 @@ def scrape_new_job_postings(config=None, geo_locator=None, geo_locations=None, h
                                                      'count': num_jobs_to_return})
             start_index += len(results)
             # see if we can check to see if the postings returned have already been saved
-            results_to_save = get_list_of_ids_not_in_db(results)
+            results_to_save = jobsearch.scraping.get_list_of_ids_not_in_db(results, 'linkedin')
             for result in results_to_save:
                 posing_details = application.get_job(job_id=results[u'id'])
                 posting = None
@@ -147,13 +144,3 @@ def scrape_new_job_postings(config=None, geo_locator=None, geo_locations=None, h
 #     db_connection.commit()
 
 
-def get_list_of_ids_not_in_db(posting_ids):
-    models.TemporaryId.objects.clear()
-    id_objs = [models.TemporaryId(id=posting_id) for posting_id in posting_ids]
-    models.TemporaryId.objects.bulk_create(id_objs)
-    response = models.TemporaryId.objects.raw('SELECT jobsearch_TemporaryId.* FROM jobsearch_TemporaryId LEFT JOIN jobsearch_JobPostings ON '
-                                              'jobsearch_TemporaryId.Id = jobsearch_JobPostings.Id and jobsearch_JobPostings.source = ''linkedin'' '
-                                              'WHERE jobsearch_JobPostings.Id IS NULL;')
-    new_uids = [row.id for row in response]
-    models.TemporaryId.objects.clear()
-    return new_uids
