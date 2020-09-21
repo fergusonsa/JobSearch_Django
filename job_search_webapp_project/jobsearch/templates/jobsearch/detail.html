@@ -1,5 +1,5 @@
-    {% load static %}
-<link rel="stylesheet" type="text/css" href="{% static 'jobsearch/style.css' %}" />
+{% extends 'jobsearch/base.html' %}
+{% block content %}
 {% if job_posting %}
 <br/>
 <span class='label'>Title</span> {{ job_posting.title }}  <br/>
@@ -10,11 +10,11 @@
 <span class='label'>Posted Date</span> {{ job_posting.posted_date }}<br/>
 <span class='label'>Inserted Date</span> {{ job_posting.inserted_date }}<br/>
 <span class='label'>Reviewed Date</span> {{ job_posting.reviewed_date }}<br/>
-<span class='label'>Interest</span> {{ job_posting.interested }}
-    <a href="/jobsearch/{{ job_posting.identifier}}/int">Interested</a>
-    <a href="/jobsearch/{{ job_posting.identifier}}/not">Not Interested</a>
-    <a href="/jobsearch/{{ job_posting.identifier}}/sub">Submitted</a>
-    <a href="/jobsearch/{{ job_posting.identifier}}/con">Contacted</a>
+<span class='label'>Interest</span> <span id="interest">{{ job_posting.interested }}</span>
+    <a href="javascript:submit_interest('{{ job_posting.identifier}}', 'int')">Interested</a>
+    <a href="javascript:submit_interest('{{ job_posting.identifier}}', 'not')">Not Interested</a>
+    <a href="javascript:submit_interest('{{ job_posting.identifier}}', 'sub')">Submitted</a>
+    <a href="javascript:submit_interest('{{ job_posting.identifier}}', 'con')">Contacted</a>
     <br/>
 <span class='label'>City</span> {{ job_posting.city }}<br/>
 <span class='label'>Province</span> {{ job_posting.province }}<br/>
@@ -29,3 +29,24 @@
 
 
 <a href="/jobsearch/">Back to home</a>
+{% endblock %}
+
+{% block javascript %}
+<script>
+    function submit_interest(posting_id, interest_type) {
+
+      $.ajax({
+        url: '/jobsearch/ajax/' + posting_id + '/' + interest_type,
+        data: {},
+        dataType: 'json',
+        success: function (data) {
+          if (data.response != 'success') {
+            alert("Attempt to set the interest for the posting '" + posting_id + "' to '"+ interest_type + "' failed! Reason: " + data.response);
+          } else {
+            $("#interest").text(interest_type)
+          }
+        }
+      });
+    }
+  </script>
+{% endblock %}

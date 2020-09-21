@@ -1,5 +1,5 @@
-{% load static %}
-<link rel="stylesheet" type="text/css" href="{% static 'jobsearch/style.css' %}" />
+{% extends 'jobsearch/base.html' %}
+{% block content %}
 {% if latest_jobs_posted_list %}
 <table class='postings-table'>
     <tr>
@@ -59,3 +59,4 @@
 <!--</form>-->
 
 <a href="/jobsearch/recruiters/">Recruiters</a>
+{% endblock %}

@@ -2,7 +2,6 @@ import logging
 import datetime
 
 import django
-import geopy
 from django.core import serializers
 from django.db import transaction
 from django.db.models import Q
@@ -138,7 +137,7 @@ def record_interest(request, identifier, interest):
     if job_posting and interest:
         if interest in jobsearch.models.InterestedChoices.values:
             job_posting.interested = interest
-            job_posting.reviewed_date = datetime.datetime.now()
+            job_posting.reviewed_date = django.utils.timezone.now()
             with transaction.atomic():
                 job_posting.save()
         else:
@@ -147,6 +146,30 @@ def record_interest(request, identifier, interest):
     else:
         logger.warning('Not a valid interest: {} for the identifier {}'.format(interest, identifier))
     return render(request, 'jobsearch/detail.html', {'job_posting': job_posting})
+
+
+def record_interest_ajax(request, identifier, interest):
+    logger.debug('Into record_interest_ajax("{}", "{}")'.format(identifier, interest))
+
+    job_posting = get_object_or_404(models.JobPostings, pk=identifier)
+    response_data = {"interest": interest}
+    if job_posting and interest:
+        if interest in jobsearch.models.InterestedChoices.values:
+            job_posting.interested = interest
+            job_posting.reviewed_date = django.utils.timezone.now()
+            with transaction.atomic():
+                job_posting.save()
+            response_data["response"] = "success"
+            logger.info('For posting "{}", set interest level to "{}"'.format(identifier, interest))
+        else:
+            logger.warning('Could not find posting with key: {} or no interest was provided: {}'.format(identifier,
+                                                                                                        interest))
+            response_data["response"] = "unknown posting"
+    else:
+        logger.warning('Not a valid interest: {} for the identifier {}'.format(interest, identifier))
+        response_data["response"] = "invalid interest"
+
+    return django.http.JsonResponse(response_data)
 
 
 def recruiter(request, row_id):
@@ -237,17 +260,10 @@ def postings_as_json(request):
 
     # if a GET (or any other method) we'll create a blank form
     else:
-        form = forms.JobSearchForm()
+        # form = forms.JobSearchForm()
         latest_jobs_posted_list = models.JobPostings.objects.order_by('-posted_date')[:5]
     json = serializers.serialize('json', latest_jobs_posted_list)
     return HttpResponse(json, content_type='application/json')
-
-
-def special_2(request):
-    logger.debug('Into special()')
-    import apscheduler.schedulers.background
-    scheduler = apscheduler.schedulers.background.BackgroundScheduler()
-    jobs = scheduler.get_jobs()
 
 
 def special(request):

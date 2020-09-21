@@ -24,8 +24,10 @@ urlpatterns = [
     # ex: /jobsearch/gov_b_s/list
     url(r'^gov_b_s/list/$', jobsearch.views.list_government_buy_sell, name='list_government_buy_sell'),
     # ex: /jobsearch/5/
-    url(r'^(?P<identifier>[a-zA-Z0-9 ._)(-]+)/$', jobsearch.views.detail, name='detail'),
+    url(r'^ajax/(?P<identifier>[a-zA-Z0-9 ._)(-–]+)/(?P<interest>[a-z]+)$', jobsearch.views.record_interest_ajax,
+        name='record_interest_ajax'),
+    url(r'^(?P<identifier>[a-zA-Z0-9 ._)(-–]+)/$', jobsearch.views.detail, name='detail'),
     # ex: /jobsearch/5/int
-    url(r'^(?P<identifier>[a-zA-Z0-9 ._)(-]+)/(?P<interest>[a-z]+)$', jobsearch.views.record_interest,
+    url(r'^(?P<identifier>[a-zA-Z0-9 ._)(-–]+)/(?P<interest>[a-z]+)$', jobsearch.views.record_interest,
         name='record_interest'),
 ]
