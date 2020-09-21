@@ -18,114 +18,6 @@ MAX_POSTINGS_RETRIEVED = 1000
 
 logger = logging.getLogger(__name__)
 
-job_site_details = {
-    'indeed': {
-        'source': 'indeed',
-        'urlSchema': 'https',
-        'netLoc': 'ca.indeed.com',
-        'location': 'Canada',
-        'urlPath': 'jobs',
-        'jobTypeKey': 'jt',
-        'pageIndexKey': 'start',
-        'pageIndexType': 'postingCount',
-        'loginUrl': 'https://secure.indeed.com/account/login?hl=en_CA&co=CA',
-        'nextUrl': '/',
-        'username': 'me@me.com',
-        'password': 'pwdpwdpwd',
-        'parseInfo': {
-            'numberJobsFound': {
-                'element': 'div',
-                'criteria': {'id': 'searchCount'},
-                'regex': '^Jobs (?:[0-9,]+) to (?:[0-9,]+) of ([0-9,]+)$',
-            },
-            'parentElement': 'div',
-            'parentCriteria': {'class': 'row',
-                               'itemtype': 'http://schema.org/JobPosting'},
-            'fields': {
-                'title': {
-                    'element': 'a',
-                    'criteria': {'itemprop': 'title'},
-                    'property': 'title',
-                },
-                'id': {
-                    'element': 'parent',
-                    'criteria': {},
-                    'property': 'data-jk',
-                },
-                'locale': {
-                    'element': 'span',
-                    'criteria': {'itemprop': 'addressLocality'},
-                },
-                'company': {
-                    'element': 'span',
-                    'criteria': {'itemprop': 'hiringOrganization'},
-                },
-                'url': {
-                    'element': 'a',
-                    'criteria': {'itemprop': 'title'},
-                    'property': 'href',
-                },
-                'postedDate': {
-                    'element': 'span',
-                    'criteria': {'class': 'date'},
-                },
-            },
-        }
-    },
-    #     'www.simplyhired.ca':   {
-    #         'urlSchema': 'http',
-    #         'netLoc': 'www.simplyhired.ca',
-    #         'location': 'Ontario',
-    #         'urlPath': 'search',
-    #         'jobTypeKey': 'fjt',
-    #         'pageIndexKey': 'pn',
-    #         'pageIndexType': 'pageCount',
-    #         'loginUrl': 'http://www.simplyhired.ca/account/signin',
-    #         'nextUrl': '',
-    #         'username': None,
-    #         'password': None,
-    #         'parseInfo': {
-    #             'numberJobsFound': {
-    #                 'element': 'h1',
-    #                 'criteria': {},
-    #                 'regex':
-    #                 'Showing (?:[0-9,]+)-(?:[0-9,]+) of ([0-9,]+) (?:[a-zA-Z ])*',
-    #             },
-    #             'parentElement': 'div',
-    #             'parentCriteria': {'class': 'js-job'},
-    #             'fields': {
-    #                 'title': {
-    #                     'element': 'h2',
-    #                     'criteria': {'itemprop': 'title'},
-    #                 },
-    #                 'id': {
-    #                     'element': 'parent',
-    #                     'criteria': {},
-    #                     'property': 'id',
-    #                     'regex': '(?mx)^r:(.*):[0-9]+$',
-    #                 },
-    #                 'locale': {
-    #                     'element': 'span',
-    #                     'criteria': {'itemprop': 'address'},
-    #                 },
-    #                 'company': {
-    #                     'element': 'span',
-    #                     'criteria': {'class': 'serp-company', 'itemprop': 'name'},
-    #                 },
-    #                 'url': {
-    #                     'element': 'a',
-    #                     'criteria': {'class': 'js-job-link'},
-    #                     'property': 'href',
-    #                 },
-    #                 'postedDate': {
-    #                     'element': 'span',
-    #                     'criteria': {'class': 'serp-timestamp'},
-    #                 },
-    #             },
-    #         }
-    #     },
-}
-
 
 def get_max_len_of_dict_vals_for_keys(this_dict, keys):
     lengths = [len(this_dict.get(key)) if this_dict.get(key) else 0
@@ -420,7 +312,7 @@ def get_job_postings_from_site(source, job_site_details_info, search_term, alias
                               job_site_details_info['netLoc'],
                               job_site_details_info['urlPath'])
     page = session.get(url, params=url_arguments, verify=False)
-    # logger.info('\n\npage header content-type info: {}\n'.format(
+    # logger.info('\n\n page header content-type info: {}\n'.format(
     #     page.headers['content-type']))
     logger.info('\n\nHere is initial URL to be "scraped": {}\n'.format(page.url))
 

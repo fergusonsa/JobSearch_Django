@@ -172,6 +172,5 @@ LOGGING = {
 STATIC_URL = '/static/'
 
 DEFAULT_APP_CONFIGURATION = {
-    "indeed_publisher": "1234567890123456",
     "home_location": "1695 Playfair Drive, Ottawa, ON, Canada"
 }

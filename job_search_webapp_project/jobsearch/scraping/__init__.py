@@ -98,7 +98,8 @@ def save_posting_to_db(posting, source, search_term, aliases, geo_locator, home_
                         posting.get('company')))
                     return False
 
-        new_company_alias = jobsearch.models.CompanyAliases.objects.create(company_name=company_name, alias=company_name)
+        new_company_alias = jobsearch.models.CompanyAliases.objects.create(company_name=company_name,
+                                                                           alias=company_name)
         with transaction.atomic():
             try:
                 new_company_alias.save()

@@ -1,5 +1,3 @@
-import logging
-
 import jobsearch.scraping
 import apscheduler.jobstores.sqlalchemy
 import apscheduler.schedulers.background
@@ -10,8 +8,6 @@ def start():
     value = config.get("scheduler").get("posting_frequency_check_value")
     job_store = apscheduler.jobstores.sqlalchemy.SQLAlchemyJobStore(url='sqlite:///jobstore.sqlite')
     scheduler = apscheduler.schedulers.background.BackgroundScheduler(job_store=job_store)
-    # scheduler.add_jobstore('sqlalchemy', url='sqlite:///jobstore.sqlite')
-    jobs = scheduler.get_jobs()
 
     # scheduler.add_job(jobsearch.scraping.daily_get_all_new_postings, 'cron', hour="*")
     scheduler.add_job(jobsearch.scraping.daily_get_all_new_postings, 'cron', minute=value)

@@ -1,6 +1,5 @@
 # coding: utf-8
 import logging
-import pathlib
 
 import django
 import indeed
@@ -12,7 +11,6 @@ import geopy.exc
 import jobsearch
 import jobsearch.scraping
 import jobsearch.models as models
-from python_miscelaneous import configuration
 
 NUMBER_POSTINGS_PER_REQUEST = 25
 
@@ -62,7 +60,8 @@ def scrape_new_job_postings(config=None, geo_locator=None, geo_locations=None, h
                 aliases = models.CompanyAliases.objects.all()
                 posting_ids = [posting['jobkey'] for posting in results_postings]
                 new_posting_ids = jobsearch.scraping.get_list_of_ids_not_in_db(posting_ids, 'indeed')
-                logger.info('Going to get {} new postings of {} available.'.format(len(new_posting_ids), len(posting_ids)))
+                logger.info('Going to get {} new postings of {} available.'.format(len(new_posting_ids),
+                                                                                   len(posting_ids)))
                 for posting in results_postings:
                     if posting['jobkey'] in new_posting_ids and jobsearch.scraping.save_posting_to_db(
                             posting, 'indeed', search_term, aliases, geo_locator, home_location, geo_locations):

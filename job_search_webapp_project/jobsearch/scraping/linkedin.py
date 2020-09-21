@@ -142,5 +142,3 @@ def scrape_new_job_postings(config=None, geo_locator=None, geo_locations=None, h
 #     response = db_connection.executemany("insert into Temporary_IDs(ID) values (?)", formatted_ids)
 #     logger.debug('insert temporary ids response rowcount: {}'.format(response.rowcount))
 #     db_connection.commit()
-
-

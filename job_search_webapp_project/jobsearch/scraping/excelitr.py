@@ -331,7 +331,7 @@ def scrape_new_job_postings(config=None, geo_locator=None, geo_locations=None, h
     if not home_location:
         # Get coordinates for home
         home_location_str = config.get('home_location')
-        home_location = scrapeJobPostings.get_geo_location(geo_locator, home_location_str)
+        home_location = jobsearch.scraping.get_geo_location(geo_locator, home_location_str)
 
     search_terms_list = ['java', 'devops', 'python', ]
     job_site_details_info = job_site_details.get('www.excelitr.com')
