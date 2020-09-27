@@ -101,6 +101,19 @@ def index(request, job_search_form=None, after_inserted_date=None):
     return HttpResponse(template.render(context, request))
 
 
+def mark_not_reviewed(request):
+    logger.debug('into mark_not_reviewed(request)')
+    queries = Q(interested=str(models.InterestedChoices.NOT_REVIEWED))
+    not_reviewed_posted_list = models.JobPostings.objects.filter(queries)
+    for posting in not_reviewed_posted_list:
+        posting.interested = str(models.InterestedChoices.REVIEWED)
+        with transaction.atomic():
+            posting.save()
+    logger.debug('{} postings updated to have interested set to "rev"'.format(len(not_reviewed_posted_list)))
+
+    return django.shortcuts.redirect('index')
+
+
 def import_postings(request):
     logger.debug('Into import_postings()')
     form = forms.JobSearchForm()

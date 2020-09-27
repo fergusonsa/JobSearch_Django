@@ -13,7 +13,9 @@ urlpatterns = [
     #     url(r'^listing/$', jobsearch.views.listing, name='listing'),
     # ex: /jobsearch/linkedin_login
     url(r'^linkedin_login/$', jobsearch.views.linkedin_login, name='linkedin_login'),
-    # ex: /jobsearch/recruiters/
+    # ex: /jobsearch/mark_not_reviewed/
+    url(r'^mark_not_reviewed/$', jobsearch.views.mark_not_reviewed, name='mark_not_reviewed'),
+    # ex: /jobsearch/special/
     url(r'^special/$', jobsearch.views.special, name='special'),
     # ex: /jobsearch/recruiters/
     url(r'^recruiters/$', jobsearch.views.recruiters, name='recruiters'),

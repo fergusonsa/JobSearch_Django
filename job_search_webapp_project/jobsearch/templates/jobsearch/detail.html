@@ -11,10 +11,10 @@
 <span class='label'>Inserted Date</span> {{ job_posting.inserted_date }}<br/>
 <span class='label'>Reviewed Date</span> {{ job_posting.reviewed_date }}<br/>
 <span class='label'>Interest</span> <span id="interest">{{ job_posting.interested }}</span>
-    <a href="javascript:submit_interest('{{ job_posting.identifier}}', 'int')">Interested</a>
-    <a href="javascript:submit_interest('{{ job_posting.identifier}}', 'not')">Not Interested</a>
-    <a href="javascript:submit_interest('{{ job_posting.identifier}}', 'sub')">Submitted</a>
-    <a href="javascript:submit_interest('{{ job_posting.identifier}}', 'con')">Contacted</a>
+    <a href="javascript:submit_interest('{{ job_posting.identifier}}', 'int', '#interest')">Interested</a>
+    <a href="javascript:submit_interest('{{ job_posting.identifier}}', 'not', '#interest')">Not Interested</a>
+    <a href="javascript:submit_interest('{{ job_posting.identifier}}', 'sub', '#interest')">Submitted</a>
+    <a href="javascript:submit_interest('{{ job_posting.identifier}}', 'con', '#interest')">Contacted</a>
     <br/>
 <span class='label'>City</span> {{ job_posting.city }}<br/>
 <span class='label'>Province</span> {{ job_posting.province }}<br/>
@@ -33,7 +33,7 @@
 
 {% block javascript %}
 <script>
-    function submit_interest(posting_id, interest_type) {
+    function submit_interest_XXXX(posting_id, interest_type, interest_display_name) {
 
       $.ajax({
         url: '/jobsearch/ajax/' + posting_id + '/' + interest_type,
@@ -42,8 +42,8 @@
         success: function (data) {
           if (data.response != 'success') {
             alert("Attempt to set the interest for the posting '" + posting_id + "' to '"+ interest_type + "' failed! Reason: " + data.response);
-          } else {
-            $("#interest").text(interest_type)
+          } else if (interest_display_name != null) {
+            $(interest_display_name).text(interest_type)
           }
         }
       });
