@@ -1,6 +1,6 @@
 appdirs==1.4.4
 beautifulsoup4==4.9.1
-Django==3.1
+Django==3.1.13
 geopy==2.0.0
 packaging==20.4
 pyparsing==2.4.7
